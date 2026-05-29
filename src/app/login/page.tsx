@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { isSupabaseConfigured } from "@/lib/env";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
+  const supabaseReady = isSupabaseConfigured();
   const supabase = createClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,6 +15,10 @@ export default function LoginPage() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    if (!supabaseReady) {
+      setError("Supabase가 아직 연결되지 않았습니다. docs/SUPABASE_SETUP.md를 참고해주세요.");
+      return;
+    }
     setLoading(true);
     setError("");
     const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
@@ -29,6 +35,11 @@ export default function LoginPage() {
       <div className="auth-card">
         <p className="eyebrow">Sign in</p>
         <h1 style={{ margin: "8px 0 18px", letterSpacing: "-0.04em" }}>Day Anchor 로그인</h1>
+        {!supabaseReady && (
+          <p style={{ color: "#b45309", lineHeight: 1.6 }}>
+            Supabase 환경변수가 설정되면 로그인할 수 있습니다. 지금은 UI만 미리볼 수 있습니다.
+          </p>
+        )}
         <form className="stack-form" onSubmit={handleSubmit}>
           <label>
             이메일
