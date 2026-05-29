@@ -1,0 +1,29 @@
+{
+  "name": "Day Anchor",
+  "short_name": "Day Anchor",
+  "description": "큰 월간 달력, 선택 날짜 일정, 체크리스트, 메모, 음성기록을 모바일/데스크톱에서 동기화하는 데일리 플래너",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#f4f1ea",
+  "theme_color": "#111827",
+  "orientation": "portrait-primary",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

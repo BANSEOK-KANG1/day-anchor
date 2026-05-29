@@ -1,0 +1,18 @@
+{
+  "name": "Day Anchor Calendar Prototype",
+  "short_name": "Day Anchor",
+  "description": "큰 월간 달력, 선택 날짜 일정, 체크리스트, 메모, 음성기록을 모바일/데스크톱에서 관리하는 데일리 플래너 프로토타입",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f1ea",
+  "theme_color": "#111827",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

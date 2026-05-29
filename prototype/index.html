@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <title>Day Anchor Prototype</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="앱 내비게이션">
+      <div class="brand">
+        <div class="brand-mark">DA</div>
+        <div>
+          <strong>Day Anchor</strong>
+          <span>달력형 하루 운영 앱</span>
+        </div>
+      </div>
+
+      <nav class="nav-list">
+        <a href="#today" class="nav-link active" data-view="today">달력</a>
+        <a href="#schedule" class="nav-link" data-view="schedule">일정</a>
+        <a href="#tasks" class="nav-link" data-view="tasks">할 일</a>
+        <a href="#notes" class="nav-link" data-view="notes">메모</a>
+        <a href="#review" class="nav-link" data-view="review">회고</a>
+        <a href="#insights" class="nav-link" data-view="insights">분석</a>
+      </nav>
+
+      <div class="sidebar-card">
+        <span class="eyebrow">Prototype</span>
+        <p>브라우저 로컬 저장소 기반입니다. 설치 없이 바로 테스트하고, 나중에 Supabase/Next.js로 확장할 수 있습니다.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar compact-topbar">
+        <div>
+          <p class="eyebrow">Calendar-first daily planner</p>
+          <h1>달력 중심으로 하루를 운영하세요.</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="ghost-btn" id="prevDayBtn" type="button">‹ 전날</button>
+          <input id="activeDate" class="date-input" type="date" aria-label="날짜 선택" />
+          <button class="ghost-btn" id="nextDayBtn" type="button">다음날 ›</button>
+          <button class="primary-btn" id="installBtn" type="button" hidden>홈화면 추가</button>
+        </div>
+      </header>
+
+      <section class="view active" id="view-today" data-view-panel="today">
+        <div class="calendar-layout">
+          <section class="panel calendar-panel" aria-label="월간 달력">
+            <div class="calendar-toolbar">
+              <div>
+                <p class="eyebrow">Main calendar</p>
+                <h2 id="calendarTitle">이번 달</h2>
+                <p class="calendar-subtitle">날짜를 누르면 해당 날짜의 일정·체크리스트·메모가 바로 아래 보드에 연결됩니다.</p>
+              </div>
+              <div class="calendar-controls">
+                <button class="ghost-btn" id="prevMonthBtn" type="button" aria-label="이전 달">‹</button>
+                <button class="secondary-btn" id="goTodayBtn" type="button">오늘</button>
+                <button class="ghost-btn" id="nextMonthBtn" type="button" aria-label="다음 달">›</button>
+              </div>
+            </div>
+
+            <div class="weekday-row" aria-hidden="true">
+              <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+            </div>
+            <div id="monthCalendar" class="month-calendar"></div>
+          </section>
+
+          <aside class="panel day-dock" aria-label="선택한 날짜 요약">
+            <div class="selected-day-head">
+              <p class="eyebrow" id="todayLabel">오늘</p>
+              <h2 id="heroTitle">아직 오늘 보드가 비어 있어요.</h2>
+              <p id="heroSubtitle">핵심 목표 3개, 시간표, 메모 슬롯을 빠르게 잡아보세요.</p>
+            </div>
+
+            <div class="hero-stats compact-stats" aria-label="선택 날짜 요약 지표">
+              <div><strong id="statCompletion">0%</strong><span>완료율</span></div>
+              <div><strong id="statBlocks">0</strong><span>일정</span></div>
+              <div><strong id="statNotes">0</strong><span>메모</span></div>
+              <div><strong id="statVoice">0</strong><span>음성</span></div>
+            </div>
+
+            <div class="now-card">
+              <div class="panel-header tight">
+                <div>
+                  <p class="eyebrow">Now</p>
+                  <h3>지금 할 일</h3>
+                </div>
+                <span class="pill" id="currentTimePill">--:--</span>
+              </div>
+              <div id="currentBlockCard" class="empty-state">현재 시간에 연결된 일정이 없습니다.</div>
+            </div>
+
+            <div class="quick-actions mobile-friendly-actions">
+              <button class="secondary-btn" id="quickMemoBtn" type="button">메모</button>
+              <button class="secondary-btn" id="quickTaskBtn" type="button">할 일</button>
+              <button class="secondary-btn" id="quickReminderBtn" type="button">알림</button>
+              <button class="primary-btn" data-jump="schedule" type="button">일정 추가</button>
+            </div>
+          </aside>
+        </div>
+
+        <div class="calendar-bottom-grid">
+          <section class="panel agenda-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Agenda</p>
+                <h2>선택 날짜 시간표</h2>
+              </div>
+              <button class="primary-btn small" data-jump="schedule" type="button">일정 추가</button>
+            </div>
+            <div id="todayTimeline" class="timeline"></div>
+          </section>
+
+          <section class="panel checklist-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Checklist</p>
+                <h2>선택 날짜 체크리스트</h2>
+              </div>
+              <button class="primary-btn small" data-jump="tasks" type="button">할 일 추가</button>
+            </div>
+            <div id="todayTasks" class="task-list"></div>
+          </section>
+
+          <section class="panel plan-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">1-minute plan</p>
+                <h2>하루 계획</h2>
+              </div>
+              <button class="ghost-btn" id="seedBtn" type="button">샘플 채우기</button>
+            </div>
+            <form id="dayForm" class="stack-form">
+              <label>
+                오늘 꼭 해야 할 핵심 목표
+                <textarea id="mainGoal" rows="3" placeholder="예: 포트폴리오 케이스 페이지를 가설-실험-결과 구조로 정리하기"></textarea>
+              </label>
+              <label>
+                오늘 피해야 하는 것
+                <input id="avoidThing" type="text" placeholder="예: 의미 없는 유튜브/카톡 반복 확인" />
+              </label>
+              <label>
+                오늘 가장 중요한 시간대
+                <input id="focusWindow" type="text" placeholder="예: 10:00~12:00 집중작업" />
+              </label>
+              <button class="primary-btn full" type="submit">하루 계획 저장</button>
+            </form>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="view-schedule" data-view-panel="schedule">
+        <div class="grid two-col">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Time blocks</p>
+                <h2>일정 블록 만들기</h2>
+              </div>
+            </div>
+            <form id="scheduleForm" class="stack-form">
+              <input id="editingBlockId" type="hidden" />
+              <label>
+                일정 제목
+                <input id="blockTitle" type="text" placeholder="예: 포트폴리오 작업" required />
+              </label>
+              <div class="form-row">
+                <label>
+                  시작
+                  <input id="blockStart" type="time" required />
+                </label>
+                <label>
+                  종료
+                  <input id="blockEnd" type="time" required />
+                </label>
+              </div>
+              <div class="form-row">
+                <label>
+                  유형
+                  <select id="blockType">
+                    <option value="deep_work">집중작업</option>
+                    <option value="admin">잡무</option>
+                    <option value="meeting">미팅/약속</option>
+                    <option value="move">이동</option>
+                    <option value="recovery">휴식</option>
+                    <option value="capture">메모</option>
+                    <option value="review">회고</option>
+                  </select>
+                </label>
+                <label>
+                  상태
+                  <select id="blockStatus">
+                    <option value="planned">예정</option>
+                    <option value="doing">진행중</option>
+                    <option value="done">완료</option>
+                    <option value="delayed">미룸</option>
+                  </select>
+                </label>
+              </div>
+              <label>
+                간단 메모
+                <textarea id="blockMemo" rows="3" placeholder="이 시간에 무엇을 끝내면 좋은지 적어보세요."></textarea>
+              </label>
+              <div class="button-row">
+                <button class="primary-btn" type="submit">일정 저장</button>
+                <button class="ghost-btn" id="cancelBlockEdit" type="button">초기화</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel wide-list-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Editable timeline</p>
+                <h2>일정 목록</h2>
+              </div>
+            </div>
+            <div id="scheduleList" class="timeline editable"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="view-tasks" data-view-panel="tasks">
+        <div class="grid two-col">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Checklist</p>
+                <h2>할 일 추가</h2>
+              </div>
+            </div>
+            <form id="taskForm" class="stack-form">
+              <input id="editingTaskId" type="hidden" />
+              <label>
+                할 일
+                <input id="taskTitle" type="text" placeholder="예: 포트폴리오 이미지 3장 교체" required />
+              </label>
+              <div class="form-row">
+                <label>
+                  우선순위
+                  <select id="taskPriority">
+                    <option value="1">높음</option>
+                    <option value="2" selected>보통</option>
+                    <option value="3">낮음</option>
+                  </select>
+                </label>
+                <label>
+                  연결 일정
+                  <select id="taskBlockSelect"></select>
+                </label>
+              </div>
+              <div class="form-row">
+                <label>
+                  마감 시간
+                  <input id="taskDue" type="time" />
+                </label>
+                <label>
+                  상태
+                  <select id="taskStatus">
+                    <option value="todo">대기</option>
+                    <option value="done">완료</option>
+                    <option value="skipped">미룸</option>
+                    <option value="carried">내일로 넘김</option>
+                  </select>
+                </label>
+              </div>
+              <button class="primary-btn full" type="submit">할 일 저장</button>
+            </form>
+          </section>
+
+          <section class="panel wide-list-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Task queue</p>
+                <h2>체크리스트 목록</h2>
+              </div>
+            </div>
+            <div id="taskList" class="task-list large"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="view-notes" data-view-panel="notes">
+        <div class="grid two-col">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Capture</p>
+                <h2>텍스트 메모</h2>
+              </div>
+            </div>
+            <form id="noteForm" class="stack-form">
+              <label>
+                연결 일정
+                <select id="noteBlockSelect"></select>
+              </label>
+              <label>
+                메모 내용
+                <textarea id="noteContent" rows="5" placeholder="지금 떠오른 생각, 막힌 지점, 다음 행동을 적어보세요." required></textarea>
+              </label>
+              <button class="primary-btn full" type="submit">메모 저장</button>
+            </form>
+
+            <div class="divider"></div>
+
+            <div class="voice-box">
+              <div>
+                <p class="eyebrow">Voice memo</p>
+                <h3>음성메모</h3>
+                <p>녹음 후 현재 일정 또는 선택한 일정에 연결됩니다.</p>
+              </div>
+              <label>
+                연결 일정
+                <select id="voiceBlockSelect"></select>
+              </label>
+              <div class="recorder-display" id="recorderStatus">대기 중</div>
+              <div class="button-row">
+                <button class="danger-btn" id="startRecordBtn" type="button">녹음 시작</button>
+                <button class="ghost-btn" id="stopRecordBtn" type="button" disabled>녹음 종료</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel wide-list-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Memory lane</p>
+                <h2>오늘의 기록</h2>
+              </div>
+              <button class="ghost-btn" id="exportBtn" type="button">JSON 내보내기</button>
+            </div>
+            <div id="noteList" class="note-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="view-review" data-view-panel="review">
+        <div class="grid two-col">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Daily review</p>
+                <h2>하루 회고</h2>
+              </div>
+              <button class="primary-btn small" id="completeReviewBtn" type="button">회고 완료</button>
+            </div>
+            <div class="score-card">
+              <span>오늘의 흐름 점수</span>
+              <strong id="flowScore">0점</strong>
+              <p id="flowDescription">아직 데이터가 부족합니다.</p>
+            </div>
+            <div class="review-grid">
+              <div><strong id="reviewDoneTasks">0</strong><span>완료한 일</span></div>
+              <div><strong id="reviewDelayedTasks">0</strong><span>미룬 일</span></div>
+              <div><strong id="reviewMemoCount">0</strong><span>메모</span></div>
+              <div><strong id="reviewCarryCount">0</strong><span>내일로 넘김</span></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Carry-over</p>
+                <h2>내일로 넘길 항목</h2>
+              </div>
+            </div>
+            <div id="carryOverList" class="task-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="view-insights" data-view-panel="insights">
+        <div class="grid two-col">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Behavior data</p>
+                <h2>최근 7일 인사이트</h2>
+              </div>
+            </div>
+            <div id="insightCards" class="insight-grid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Event log</p>
+                <h2>행동 이벤트 로그</h2>
+              </div>
+              <button class="ghost-btn" id="resetBtn" type="button">데이터 초기화</button>
+            </div>
+            <div id="eventLog" class="event-log"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+
+  <div class="mobile-quick-dock" aria-label="모바일 빠른 실행">
+    <button type="button" data-jump="schedule">+ 일정</button>
+    <button type="button" data-jump="tasks">+ 할 일</button>
+    <button type="button" data-jump="notes">+ 메모</button>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
