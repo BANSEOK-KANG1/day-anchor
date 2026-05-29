@@ -6,8 +6,8 @@
 
 ## Live Demo
 
+- **Production:** https://day-anchor.vercel.app
 - **GitHub:** https://github.com/BANSEOK-KANG1/day-anchor
-- **Vercel:** 배포 진행 중 (아래 Vercel 연결 안내 참고)
 
 ## 기술 스택
 
