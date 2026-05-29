@@ -1,5 +1,5 @@
--- Day Anchor Supabase Schema (production)
--- Run in Supabase SQL Editor
+-- Day Anchor Supabase Schema (production, idempotent)
+-- Supabase Dashboard → SQL Editor → New query → 전체 붙여넣기 → Run
 
 create extension if not exists "uuid-ossp";
 
@@ -101,50 +101,82 @@ alter table public.voice_memos enable row level security;
 alter table public.reminders enable row level security;
 alter table public.activity_events enable row level security;
 
+drop policy if exists "days owner access" on public.days;
 create policy "days owner access" on public.days
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "schedule_blocks owner access" on public.schedule_blocks;
 create policy "schedule_blocks owner access" on public.schedule_blocks
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "tasks owner access" on public.tasks;
 create policy "tasks owner access" on public.tasks
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "notes owner access" on public.notes;
 create policy "notes owner access" on public.notes
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "voice_memos owner access" on public.voice_memos;
 create policy "voice_memos owner access" on public.voice_memos
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "reminders owner access" on public.reminders;
 create policy "reminders owner access" on public.reminders
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "activity_events owner access" on public.activity_events;
 create policy "activity_events owner access" on public.activity_events
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- Storage bucket (run separately in Storage UI or via SQL)
 insert into storage.buckets (id, name, public)
 values ('voice-memos', 'voice-memos', false)
 on conflict (id) do nothing;
 
+drop policy if exists "voice memos upload" on storage.objects;
 create policy "voice memos upload" on storage.objects
   for insert with check (
     bucket_id = 'voice-memos' and auth.uid()::text = (storage.foldername(name))[1]
   );
 
+drop policy if exists "voice memos read" on storage.objects;
 create policy "voice memos read" on storage.objects
   for select using (
     bucket_id = 'voice-memos' and auth.uid()::text = (storage.foldername(name))[1]
   );
 
+drop policy if exists "voice memos delete" on storage.objects;
 create policy "voice memos delete" on storage.objects
   for delete using (
     bucket_id = 'voice-memos' and auth.uid()::text = (storage.foldername(name))[1]
   );
 
--- Enable Realtime (run in Dashboard > Database > Replication, or):
-alter publication supabase_realtime add table public.days;
-alter publication supabase_realtime add table public.schedule_blocks;
-alter publication supabase_realtime add table public.tasks;
-alter publication supabase_realtime add table public.notes;
-alter publication supabase_realtime add table public.reminders;
+do $$
+begin
+  alter publication supabase_realtime add table public.days;
+exception when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.schedule_blocks;
+exception when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.tasks;
+exception when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.notes;
+exception when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.reminders;
+exception when duplicate_object then null;
+end $$;

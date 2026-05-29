@@ -1,72 +1,91 @@
-# Supabase 설정 가이드
+# Supabase 연결 — 10분 체크리스트
 
-Day Anchor 프로덕션 앱을 사용하려면 Supabase 프로젝트를 생성하고 아래 단계를 따르세요.
+Day Anchor: https://day-anchor.vercel.app
 
-## 1. 프로젝트 생성
+## Step 1. Supabase 프로젝트 만들기
 
-1. [supabase.com](https://supabase.com)에서 새 프로젝트 생성
-2. Project Settings → API에서 **Project URL**과 **anon public key** 복사
+1. https://supabase.com/dashboard 접속 → **New project**
+2. 이름: `day-anchor` (아무거나 OK)
+3. Database Password: **꼭 저장** (나중에 DB 직접 접속 시 필요)
+4. Region: **Northeast Asia (Seoul)** 권장
+5. **Create new project** → 1~2분 대기
 
-## 2. 환경변수
+## Step 2. API 키 복사
 
-프로젝트 루트에 `.env.local` 파일 생성:
+**Project Settings → API**
+
+| 항목 | 용도 |
+|------|------|
+| Project URL | `NEXT_PUBLIC_SUPABASE_URL` |
+| anon public | `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+
+⚠️ `service_role` 키는 **절대** 프론트/Vercel에 넣지 마세요.
+
+## Step 3. SQL 스키마 실행
+
+**SQL Editor → New query**
+
+[supabase/schema.sql](../supabase/schema.sql) **전체** 복사 → 붙여넣기 → **Run**
+
+성공 메시지: `Success. No rows returned`
+
+## Step 4. Auth 설정
+
+**Authentication → Providers → Email**
+
+- Email provider: **Enabled**
+- **Confirm email**: 처음엔 **OFF** 권장 (바로 로그인 테스트 가능)
+
+**Authentication → URL Configuration**
+
+| 필드 | 값 |
+|------|-----|
+| Site URL | `https://day-anchor.vercel.app` |
+| Redirect URLs | `https://day-anchor.vercel.app/**` |
+| | `http://localhost:3000/**` |
+
+## Step 5. Vercel 환경변수
+
+Vercel → **day-anchor** → **Settings → Environment Variables**
+
+| Name | Value |
+|------|-------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Step 2 URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Step 2 anon key |
+
+Environment: **Production, Preview, Development** 모두 체크 → **Save**
+
+**Deployments → Redeploy** (Use existing Build Cache: OFF)
+
+## Step 6. 로컬 `.env.local`
+
+프로젝트 루트:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_ANON_KEY
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
 ```
 
-Vercel 배포 시에도 동일한 변수를 Environment Variables에 등록하세요.
-
-## 3. 데이터베이스 스키마
-
-Supabase Dashboard → SQL Editor에서 [supabase/schema.sql](../supabase/schema.sql) 전체를 실행합니다.
-
-포함 내용:
-
-- `days`, `schedule_blocks`, `tasks`, `notes`, `voice_memos`, `reminders`, `activity_events` 테이블
-- Row Level Security 정책
-- `voice-memos` Storage bucket 및 정책
-- Realtime publication 설정
-
-## 4. Auth 설정
-
-Authentication → Providers에서 **Email** 활성화.
-
-선택: Google OAuth 등 소셜 로그인 추가.
-
-## 5. Realtime (동기화)
-
-Database → Replication에서 아래 테이블이 Realtime에 포함되었는지 확인:
-
-- `days`
-- `schedule_blocks`
-- `tasks`
-- `notes`
-- `reminders`
-
-## 6. 로컬 실행
-
 ```bash
-npm install
 npm run dev
 ```
 
-브라우저에서 `http://localhost:3000` → 회원가입 → `/app` 사용.
+## Step 7. 테스트
 
-## 7. 기존 프로토타입 데이터 이전
+1. https://day-anchor.vercel.app/signup → 회원가입
+2. `/app` → 달력·일정·할 일 추가
+3. 폰/PC 다른 브라우저에서 **같은 계정** 로그인 → 데이터 동기화 확인
 
-1. `prototype/` 폴더의 앱에서 JSON 내보내기
-2. 로그인 후 `/settings/import`에서 파일 업로드
+## 문제 해결
 
-음성메모는 Storage 재업로드가 필요합니다.
-
-## 8. PWA 설치
-
-HTTPS 배포 후:
-
-| 기기 | 방법 |
+| 증상 | 해결 |
 |------|------|
-| iPhone/iPad | Safari → 공유 → 홈 화면에 추가 |
-| Android | Chrome → 앱 설치 |
-| Mac/Windows | Chrome/Edge → 주소창 설치 아이콘 |
+| 회원가입 후 로그인 안 됨 | Auth → Confirm email OFF |
+| 로그인 redirect 오류 | Site URL / Redirect URLs 확인 |
+| 음성메모 업로드 실패 | Storage에 `voice-memos` bucket 있는지 확인 |
+| Realtime 동기화 안 됨 | Database → Replication에서 5개 테이블 ON |
+
+## 다음 (선택)
+
+- 프로토타입 JSON: `/settings/import`
+- PWA: Safari/Chrome → 홈 화면 추가
