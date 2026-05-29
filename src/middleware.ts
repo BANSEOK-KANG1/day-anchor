@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/env";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
-  const hasSupabase =
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes("your-project");
+  const url = getSupabaseUrl();
+  const key = getSupabaseAnonKey();
+  const hasSupabase = url && key && !url.includes("your-project");
 
   if (!hasSupabase) {
     return NextResponse.next();

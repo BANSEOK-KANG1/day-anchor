@@ -23,7 +23,11 @@ export default function LoginPage() {
     setError("");
     const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
     if (authError) {
-      setError(authError.message);
+      const message =
+        authError.message === "Failed to fetch"
+          ? "Supabase 서버에 연결할 수 없습니다. Project URL이 대시보드와 정확히 같은지 확인해주세요."
+          : authError.message;
+      setError(message);
       setLoading(false);
       return;
     }
