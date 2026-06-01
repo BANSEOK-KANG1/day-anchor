@@ -16,6 +16,8 @@ interface DayScheduleSectionProps {
   isToday: boolean;
   onBlockDone: (id: string) => void;
   onBlockSkip: (id: string) => void;
+  onBlockDelete?: (id: string) => void;
+  onBlockEdit?: (block: ScheduleBlock) => void;
   onToggle: (taskId: string, done: boolean) => void;
   onTaskDone: (taskId: string) => void;
   onTaskSkip: (taskId: string) => void;
@@ -31,6 +33,8 @@ export function DayScheduleSection({
   isToday,
   onBlockDone,
   onBlockSkip,
+  onBlockDelete,
+  onBlockEdit,
   onToggle,
   onTaskDone,
   onTaskSkip,
@@ -90,6 +94,16 @@ export function DayScheduleSection({
                   <button type="button" className="warning-mini" onClick={() => onBlockSkip(block.id)}>
                     미룸
                   </button>
+                  {onBlockEdit ? (
+                    <button type="button" className="ghost-btn small" onClick={() => onBlockEdit(block)}>
+                      수정
+                    </button>
+                  ) : null}
+                  {onBlockDelete ? (
+                    <button type="button" className="ghost-btn small" onClick={() => onBlockDelete(block.id)}>
+                      삭제
+                    </button>
+                  ) : null}
                 </div>
               </div>
             </article>

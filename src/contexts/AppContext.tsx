@@ -131,7 +131,8 @@ interface AppContextValue {
   saveReviewNote: (text: string) => Promise<void>;
   finishReview: (reviewText?: string) => Promise<void>;
   carryAllIncompleteTasks: () => Promise<void>;
-  seedSampleData: () => Promise<void>;
+  clearDaySchedules: () => Promise<void>;
+  clearDayTasks: () => Promise<void>;
   exportData: () => void;
   refreshAll: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -550,37 +551,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await refreshAll();
   }, [supabase, user, tasks, showToast, refreshAll]);
 
-  const seedSampleData = useCallback(async () => {
-    const currentDay = await withDay();
-    await updateDayPlan(supabase, currentDay.id, {
-      main_goal: "포트폴리오 케이스 페이지를 가설-실험-결과 구조로 정리하기",
-      avoid_text: "의미 없는 앱 전환과 완벽주의로 시작을 미루는 것",
-      focus_window: "10:00~12:00 집중작업",
-    });
-
+  const clearDaySchedules = useCallback(async () => {
     if (!blocks.length) {
-      const samples: [string, string, string, BlockType, BlockStatus, string][] = [
-        ["08:30", "09:00", "아침 계획 정리", "review", "done", "오늘 핵심 목표와 시간표를 정리합니다."],
-        ["10:00", "12:00", "포트폴리오 집중작업", "deep_work", "planned", "케이스 페이지의 문제정의와 지표 문장을 다듬습니다."],
-        ["13:30", "14:30", "지원 공고 분석", "admin", "planned", "JD와 내 경험의 연결점을 정리합니다."],
-        ["15:30", "16:00", "중간 메모 슬롯", "capture", "planned", "막힌 부분과 다음 행동을 기록합니다."],
-        ["22:30", "23:00", "하루 회고", "review", "planned", "완료/미룸/내일 항목을 정리합니다."],
-      ];
-      for (const [start, end, title, type, status, memo] of samples) {
-        await upsertScheduleBlock(supabase, user!.id, currentDay.id, {
-          title,
-          start_time: start,
-          end_time: end,
-          block_type: type,
-          status,
-          memo,
-        });
-      }
+      showToast("삭제할 일정이 없습니다.");
+      return;
     }
-
+    if (!confirm(`오늘 일정 ${blocks.length}개를 모두 삭제할까요?`)) return;
+    for (const block of blocks) {
+      await deleteScheduleBlock(supabase, block.id);
+    }
+    showToast("오늘 일정을 비웠습니다.");
     await refreshAll();
-    showToast("샘플 데이터가 채워졌습니다.");
-  }, [supabase, user, blocks.length, withDay, refreshAll, showToast]);
+  }, [supabase, blocks, showToast, refreshAll]);
+
+  const clearDayTasks = useCallback(async () => {
+    if (!tasks.length) {
+      showToast("삭제할 할 일이 없습니다.");
+      return;
+    }
+    if (!confirm(`오늘 할 일 ${tasks.length}개를 모두 삭제할까요?`)) return;
+    for (const task of tasks) {
+      await deleteTask(supabase, task.id);
+    }
+    showToast("오늘 할 일을 비웠습니다.");
+    await refreshAll();
+  }, [supabase, tasks, showToast, refreshAll]);
 
   const exportData = useCallback(() => {
     const blob = new Blob(
@@ -665,7 +660,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveReviewNote,
     finishReview,
     carryAllIncompleteTasks,
-    seedSampleData,
+    clearDaySchedules,
+    clearDayTasks,
     exportData,
     refreshAll,
     signOut,

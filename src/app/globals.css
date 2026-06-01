@@ -1471,6 +1471,45 @@ button:disabled {
   box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.14);
 }
 
+.schedule-example-preview {
+  margin-bottom: 12px;
+}
+
+.schedule-example-lead {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.schedule-example-lead strong {
+  color: var(--ink);
+}
+
+.tag-example {
+  background: var(--accent-soft);
+  color: var(--ink);
+  margin-right: 8px;
+}
+
+.schedule-group-example {
+  opacity: 0.72;
+  pointer-events: none;
+  border-style: dashed;
+}
+
+.schedule-example-stack .schedule-block-actions {
+  display: none;
+}
+
+.day-schedule-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+
 .schedule-block-row {
   display: grid;
   grid-template-columns: 76px minmax(0, 1fr);
@@ -1689,6 +1728,20 @@ button:disabled {
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+}
+
+.task-card-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.task-delete-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .task-menu-wrap {

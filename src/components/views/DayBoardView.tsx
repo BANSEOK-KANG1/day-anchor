@@ -9,6 +9,7 @@ import { useApp } from "@/contexts/AppContext";
 import { useMobileLayout } from "@/lib/useMobileLayout";
 import type { Task } from "@/lib/types";
 import { DayScheduleSection } from "@/components/shared/DayScheduleSection";
+import { ScheduleExamplePreview } from "@/components/shared/ScheduleExamplePreview";
 
 export function DayBoardView() {
   const {
@@ -21,8 +22,10 @@ export function DayBoardView() {
     currentBlock,
     currentTime,
     saveDayPlan,
-    seedSampleData,
     setBlockStatus,
+    removeBlock,
+    clearDaySchedules,
+    clearDayTasks,
     saveTask,
     toggleTask,
     removeTask,
@@ -44,8 +47,8 @@ export function DayBoardView() {
   const [reminderOpen, setReminderOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
 
-  const isEmpty =
-    !day?.main_goal && !blocks.length && !tasks.length && !notes.length;
+  const unlinkedTasks = tasks.filter((task) => !task.schedule_block_id);
+  const scheduleEmpty = !blocks.length && !unlinkedTasks.length;
 
   const taskHandlers = {
     onToggle: toggleTask,
@@ -142,28 +145,56 @@ export function DayBoardView() {
         </div>
 
         <div className="day-schedule-body">
-          {isEmpty ? (
-            <div className="empty-state empty-in-hero">
-              <p className="empty-lead">기록이 비어 있어요.</p>
+          {scheduleEmpty ? (
+            <div className="empty-in-hero">
+              <ScheduleExamplePreview />
               <div className="empty-actions">
                 <button type="button" className="primary-btn full" onClick={() => openQuickCapture("schedule")}>
-                  + 일정 추가
-                </button>
-                <button type="button" className="ghost-btn full" onClick={() => seedSampleData()}>
-                  샘플 넣기
+                  + 내 일정 추가
                 </button>
               </div>
             </div>
           ) : (
-            <DayScheduleSection
-              blocks={blocks}
-              tasks={tasks}
-              currentBlockId={currentBlock?.id}
-              isToday={isToday}
-              onBlockDone={(id) => setBlockStatus(id, "done")}
-              onBlockSkip={(id) => setBlockStatus(id, "skipped")}
-              {...taskHandlers}
-            />
+            <>
+              {blocks.length > 0 || tasks.length > 0 ? (
+                <div className="day-schedule-toolbar">
+                  {blocks.length > 0 ? (
+                    <button
+                      type="button"
+                      className="link-btn small"
+                      onClick={() => void clearDaySchedules()}
+                    >
+                      오늘 일정 모두 삭제
+                    </button>
+                  ) : null}
+                  {tasks.length > 0 ? (
+                    <button
+                      type="button"
+                      className="link-btn small"
+                      onClick={() => void clearDayTasks()}
+                    >
+                      오늘 할 일 모두 삭제
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
+              <DayScheduleSection
+                blocks={blocks}
+                tasks={tasks}
+                currentBlockId={currentBlock?.id}
+                isToday={isToday}
+                onBlockDone={(id) => setBlockStatus(id, "done")}
+                onBlockSkip={(id) => setBlockStatus(id, "skipped")}
+                onBlockDelete={async (id) => {
+                  if (confirm("이 일정을 삭제할까요?")) await removeBlock(id);
+                }}
+                onBlockEdit={(_block) => {
+                  setMoreSubView("schedule");
+                  setActiveView("more", { keepMoreSub: true });
+                }}
+                {...taskHandlers}
+              />
+            </>
           )}
         </div>
 
@@ -246,9 +277,6 @@ export function DayBoardView() {
               }}
               onSave={saveDayPlan}
             />
-            <button className="ghost-btn small" type="button" onClick={() => seedSampleData()}>
-              샘플 채우기
-            </button>
           </div>
         ) : null}
       </section>

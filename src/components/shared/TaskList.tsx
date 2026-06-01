@@ -74,6 +74,16 @@ export function TaskList({
             <div className="task-card-body">
               <div className="task-card-head">
                 <p className={`task-title ${done ? "done" : ""}`}>{task.title}</p>
+                <div className="task-card-head-actions">
+                {onDelete ? (
+                  <button
+                    type="button"
+                    className="ghost-btn small task-delete-btn"
+                    onClick={() => onDelete(task.id)}
+                  >
+                    삭제
+                  </button>
+                ) : null}
                 {showActions && mobileMenu ? (
                   <div className="task-menu-wrap">
                     <button
@@ -108,6 +118,7 @@ export function TaskList({
                     ) : null}
                   </div>
                 ) : null}
+                </div>
               </div>
               {!hideMeta ? (
                 <p className="task-meta">
