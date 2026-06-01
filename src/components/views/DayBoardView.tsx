@@ -37,7 +37,7 @@ export function DayBoardView() {
   const isToday = activeDate === todayString;
   const hour = new Date().getHours();
   const showReviewBanner = isToday && !day?.review_completed && hour >= 18;
-  const planExpanded = isToday && hour < 12;
+  const planExpanded = false;
   const [planOpen, setPlanOpen] = useState(planExpanded);
   const [reminderOpen, setReminderOpen] = useState(false);
 
