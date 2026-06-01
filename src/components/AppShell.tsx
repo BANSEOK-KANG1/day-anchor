@@ -5,7 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { NAV_VIEWS, VIEW_LABEL, type MoreSubView, type ViewName } from "@/lib/types";
-import { formatShortKoreanDate, formatKoreanMonth } from "@/lib/date";
+import {
+  formatCompactKoreanDate,
+  formatCompactKoreanMonth,
+  formatKoreanMonth,
+  formatShortKoreanDate,
+} from "@/lib/date";
 import { DayBoardView } from "@/components/views/DayBoardView";
 import { MonthView } from "@/components/views/MonthView";
 import { MoreView } from "@/components/views/MoreView";
@@ -16,10 +21,16 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 const VALID_VIEWS: ViewName[] = ["day", "month", "more"];
 const VALID_MORE: MoreSubView[] = ["menu", "review", "insights", "schedule", "tasks", "notes"];
 
-function topbarTitle(view: ViewName, activeDate: string, calendarCursor: string): string {
+function desktopTitle(view: ViewName, activeDate: string, calendarCursor: string): string {
   if (view === "day") return formatShortKoreanDate(activeDate);
   if (view === "month") return formatKoreanMonth(calendarCursor);
   return "더보기";
+}
+
+function mobileTitle(view: ViewName, activeDate: string, calendarCursor: string): string {
+  if (view === "day") return formatCompactKoreanDate(activeDate);
+  if (view === "month") return formatCompactKoreanMonth(calendarCursor);
+  return VIEW_LABEL[view];
 }
 
 export function AppShell() {
@@ -90,7 +101,6 @@ export function AppShell() {
   if (!user) return null;
 
   const viewLabel = VIEW_LABEL[activeView];
-  const title = topbarTitle(activeView, activeDate, calendarCursor);
 
   return (
     <div className="app-shell">
@@ -132,26 +142,60 @@ export function AppShell() {
 
       <main className="main">
         <header className="topbar slim-topbar">
-          <div className="topbar-title-block">
-            <p className="eyebrow">{viewLabel}</p>
-            <h1>{title}</h1>
-          </div>
-          <div className="topbar-actions">
-            <button className="ghost-btn icon-btn" type="button" aria-label="전날" onClick={() => shiftDay(-1)}>
+          <div className="mobile-header-bar">
+            <button
+              className="ghost-btn icon-btn"
+              type="button"
+              aria-label="전날"
+              onClick={() => shiftDay(-1)}
+            >
               ‹
             </button>
-            <input
-              id="activeDate"
-              className="date-input"
-              type="date"
-              aria-label="날짜 선택"
-              value={activeDate}
-              onChange={(e) => setActiveDate(e.target.value)}
-            />
-            <button className="ghost-btn icon-btn" type="button" aria-label="다음날" onClick={() => shiftDay(1)}>
+            <div className="mobile-header-center">
+              <span className="mobile-view-chip">{viewLabel}</span>
+              <label className="mobile-date-hit">
+                <span className="mobile-date-text">{mobileTitle(activeView, activeDate, calendarCursor)}</span>
+                <input
+                  className="mobile-date-input"
+                  type="date"
+                  aria-label="날짜 선택"
+                  value={activeDate}
+                  onChange={(e) => setActiveDate(e.target.value)}
+                />
+              </label>
+            </div>
+            <button
+              className="ghost-btn icon-btn"
+              type="button"
+              aria-label="다음날"
+              onClick={() => shiftDay(1)}
+            >
               ›
             </button>
-            <InstallPrompt />
+          </div>
+
+          <div className="desktop-topbar">
+            <div className="topbar-title-block">
+              <p className="eyebrow">{viewLabel}</p>
+              <h1>{desktopTitle(activeView, activeDate, calendarCursor)}</h1>
+            </div>
+            <div className="topbar-actions">
+              <button className="ghost-btn icon-btn" type="button" aria-label="전날" onClick={() => shiftDay(-1)}>
+                ‹
+              </button>
+              <input
+                id="activeDate"
+                className="date-input"
+                type="date"
+                aria-label="날짜 선택"
+                value={activeDate}
+                onChange={(e) => setActiveDate(e.target.value)}
+              />
+              <button className="ghost-btn icon-btn" type="button" aria-label="다음날" onClick={() => shiftDay(1)}>
+                ›
+              </button>
+              <InstallPrompt />
+            </div>
           </div>
         </header>
 

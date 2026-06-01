@@ -2,8 +2,6 @@
 
 import { FormEvent, useState } from "react";
 import {
-  formatKoreanDate,
-  formatShortKoreanDate,
   formatTimeFromDb,
   getLocalDateString,
 } from "@/lib/date";
@@ -73,32 +71,20 @@ export function DayBoardView() {
       ) : null}
 
       <section className="panel now-panel">
-        <div className="panel-header tight">
-          <div>
-            <p className="eyebrow">{formatShortKoreanDate(activeDate)}</p>
-            <h2>{isToday ? "오늘" : formatKoreanDate(activeDate)}</h2>
+        <div className="now-strip">
+          <div className="now-strip-main">
+            <h2 className="section-title">지금</h2>
+            <span className="pill time-pill">{currentTime}</span>
           </div>
-          <span className="pill completion-pill">{stats.completion}% 완료</span>
+          <span className="pill completion-pill">{stats.completion}%</span>
         </div>
-
-        <div className="now-card">
-          <div className="panel-header tight">
-            <div>
-              <p className="eyebrow">Now</p>
-              <h3>지금 할 일</h3>
-            </div>
-            <span className="pill">{currentTime}</span>
+        {currentBlock && isToday ? (
+          <CurrentMiniCard block={currentBlock} />
+        ) : (
+          <div className="empty-state compact-empty">
+            {isToday ? "진행 중인 일정 없음" : "오늘 날짜에만 표시됩니다"}
           </div>
-          {currentBlock && isToday ? (
-            <CurrentMiniCard block={currentBlock} />
-          ) : (
-            <div className="empty-state">
-              {isToday
-                ? "현재 시간에 연결된 일정이 없습니다."
-                : "선택한 날짜의 현재 블록은 오늘에만 표시됩니다."}
-            </div>
-          )}
-        </div>
+        )}
       </section>
 
       {isEmpty ? (
@@ -124,10 +110,7 @@ export function DayBoardView() {
           aria-expanded={planOpen}
           onClick={() => setPlanOpen((open) => !open)}
         >
-          <div>
-            <p className="eyebrow">1-minute plan</p>
-            <h2>하루 계획</h2>
-          </div>
+          <h2 className="section-title">오늘 계획</h2>
           <span className="accordion-chevron">{planOpen ? "▾" : "▸"}</span>
         </button>
         {planOpen ? (
@@ -149,13 +132,10 @@ export function DayBoardView() {
       </section>
 
       <section className="panel agenda-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">Agenda</p>
-            <h2>오늘 시간표</h2>
-          </div>
-          <button className="primary-btn small" type="button" onClick={() => openQuickCapture("schedule")}>
-            + 일정
+        <div className="panel-header compact-header">
+          <h2 className="section-title">시간표</h2>
+          <button className="ghost-btn small add-chip" type="button" onClick={() => openQuickCapture("schedule")}>
+            추가
           </button>
         </div>
         <BlockTimeline
@@ -167,13 +147,10 @@ export function DayBoardView() {
       </section>
 
       <section className="panel checklist-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">Checklist</p>
-            <h2>체크리스트</h2>
-          </div>
-          <button className="primary-btn small" type="button" onClick={() => openQuickCapture("task")}>
-            + 할 일
+        <div className="panel-header compact-header">
+          <h2 className="section-title">할 일</h2>
+          <button className="ghost-btn small add-chip" type="button" onClick={() => openQuickCapture("task")}>
+            추가
           </button>
         </div>
         <TaskList
@@ -181,6 +158,7 @@ export function DayBoardView() {
           blocks={blocks}
           compact
           mobileMenu
+          hideMeta
           onToggle={toggleTask}
           onDone={async (id) => {
             const task = tasks.find((item) => item.id === id);
@@ -231,13 +209,10 @@ export function DayBoardView() {
       </section>
 
       <section className="panel notes-preview-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">Memory</p>
-            <h2>최근 메모</h2>
-          </div>
+        <div className="panel-header compact-header">
+          <h2 className="section-title">메모</h2>
           <button
-            className="ghost-btn small"
+            className="ghost-btn small add-chip"
             type="button"
             onClick={() => {
               setMoreSubView("notes");
@@ -283,18 +258,15 @@ export function DayBoardView() {
         )}
       </section>
 
-      <section className="panel reminder-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">Reminder</p>
-            <h2>메모 알림</h2>
-          </div>
+      <section className="panel reminder-panel mobile-collapsed-panel">
+        <div className="panel-header compact-header">
+          <h2 className="section-title">알림</h2>
           <button
             type="button"
-            className="ghost-btn small"
+            className="ghost-btn small add-chip"
             onClick={() => setReminderOpen((open) => !open)}
           >
-            {reminderOpen ? "닫기" : "+ 알림"}
+            {reminderOpen ? "닫기" : "설정"}
           </button>
         </div>
         {reminderOpen ? (
@@ -318,10 +290,9 @@ export function DayBoardView() {
 
 function CurrentMiniCard({ block }: { block: ScheduleBlock }) {
   return (
-    <article className="timeline-item current-mini-card">
-      <div className="timeline-time">
-        {formatTimeFromDb(block.start_time)}
-        <br />~ {formatTimeFromDb(block.end_time)}
+    <article className="timeline-item current-mini-card compact-current">
+      <div className="timeline-time oneline-time">
+        {formatTimeFromDb(block.start_time)}–{formatTimeFromDb(block.end_time)}
       </div>
       <div className="timeline-body">
         <strong>{block.title}</strong>

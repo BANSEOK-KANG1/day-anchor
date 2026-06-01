@@ -79,6 +79,22 @@ export function formatShortKoreanDate(dateString: string): string {
   }).format(d);
 }
 
+/** One-line mobile title, e.g. "5.29 (금)" */
+export function formatCompactKoreanDate(dateString: string): string {
+  const d = new Date(`${dateString}T00:00:00`);
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  const weekday = new Intl.DateTimeFormat("ko-KR", { weekday: "short" }).format(d);
+  return `${month}.${day} (${weekday})`;
+}
+
+export function formatCompactKoreanMonth(dateString: string): string {
+  const d = new Date(`${dateString}T00:00:00`);
+  const year = d.getFullYear();
+  const month = d.getMonth() + 1;
+  return `${year}.${month}`;
+}
+
 export function getLastNDates(fromDate: string, n: number): string[] {
   return [...Array(n)].map((_, index) => {
     const d = new Date(`${fromDate}T00:00:00`);

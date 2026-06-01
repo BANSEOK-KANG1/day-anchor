@@ -9,6 +9,7 @@ interface TaskListProps {
   blocks?: ScheduleBlock[];
   compact?: boolean;
   mobileMenu?: boolean;
+  hideMeta?: boolean;
   onToggle?: (taskId: string, done: boolean) => void;
   onDone?: (taskId: string) => void;
   onSkip?: (taskId: string) => void;
@@ -22,6 +23,7 @@ export function TaskList({
   blocks = [],
   compact = false,
   mobileMenu = false,
+  hideMeta = false,
   onToggle,
   onDone,
   onSkip,
@@ -105,17 +107,23 @@ export function TaskList({
                   </div>
                 ) : null}
               </div>
-              <p className="task-meta">
-                {task.due_time ? `${formatTimeFromDb(task.due_time)} · ` : ""}
-                {findBlockTitle(task.schedule_block_id)} · 우선순위 {task.priority} ·{" "}
-                <span className={`tag ${statusClass}`}>{TASK_STATUS_LABEL[task.status]}</span>
-                {task.delay_reason ? (
-                  <>
-                    <br />
-                    미룸 이유: {task.delay_reason}
-                  </>
-                ) : null}
-              </p>
+              {!hideMeta ? (
+                <p className="task-meta">
+                  {task.due_time ? `${formatTimeFromDb(task.due_time)} · ` : ""}
+                  {findBlockTitle(task.schedule_block_id)} · 우선순위 {task.priority} ·{" "}
+                  <span className={`tag ${statusClass}`}>{TASK_STATUS_LABEL[task.status]}</span>
+                  {task.delay_reason ? (
+                    <>
+                      <br />
+                      미룸 이유: {task.delay_reason}
+                    </>
+                  ) : null}
+                </p>
+              ) : (
+                <p className="task-meta task-meta-min">
+                  <span className={`tag ${statusClass}`}>{TASK_STATUS_LABEL[task.status]}</span>
+                </p>
+              )}
               {showActions && !mobileMenu ? (
                 <div className="item-actions">
                   <button type="button" className="primary-mini" onClick={() => onDone?.(task.id)}>
