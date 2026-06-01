@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { NAV_VIEWS, VIEW_LABEL, type MoreSubView, type ViewName } from "@/lib/types";
 import {
@@ -27,16 +27,41 @@ function desktopTitle(view: ViewName, activeDate: string, calendarCursor: string
   return "더보기";
 }
 
-function mobileTitle(view: ViewName, activeDate: string, calendarCursor: string): string {
-  if (view === "day") return formatCompactKoreanDate(activeDate);
-  if (view === "month") return formatCompactKoreanMonth(calendarCursor);
-  return VIEW_LABEL[view];
+function mobileHeaderLine(view: ViewName, activeDate: string, calendarCursor: string): string {
+  if (view === "day") return `오늘 ${formatCompactKoreanDate(activeDate)}`;
+  if (view === "month") return `달력 ${formatCompactKoreanMonth(calendarCursor)}`;
+  return "더보기";
+}
+
+function buildAppUrl(view: ViewName, date: string, moreSubView: MoreSubView): string {
+  const params = new URLSearchParams();
+  params.set("view", view);
+  params.set("date", date);
+  if (view === "more" && moreSubView !== "menu") {
+    params.set("more", moreSubView);
+  }
+  return `/app?${params.toString()}`;
+}
+
+function readUrlState(search: string) {
+  const params = new URLSearchParams(search);
+  const dateParam = params.get("date");
+  const viewParam = params.get("view");
+  const moreParam = params.get("more");
+  return {
+    date: dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : null,
+    view: viewParam && VALID_VIEWS.includes(viewParam as ViewName) ? (viewParam as ViewName) : null,
+    more:
+      moreParam && VALID_MORE.includes(moreParam as MoreSubView) ? (moreParam as MoreSubView) : null,
+  };
 }
 
 export function AppShell() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const urlSynced = useRef(false);
+  const applyingHistory = useRef(false);
+  const prevNav = useRef<{ view: ViewName; more: MoreSubView; date: string } | null>(null);
 
   const {
     user,
@@ -60,34 +85,77 @@ export function AppShell() {
     }
   }, [loading, user, router, supabaseReady]);
 
+  const applyUrlState = useCallback(
+    (search: string) => {
+      const { date, view, more } = readUrlState(search);
+      if (date) void setActiveDate(date);
+      if (view) setActiveView(view, { keepMoreSub: true });
+      if (more && more !== "menu") setMoreSubView(more);
+      else if (view === "more") setMoreSubView("menu");
+    },
+    [setActiveDate, setActiveView, setMoreSubView],
+  );
+
   useEffect(() => {
     if (urlSynced.current || loading || !user) return;
-    const dateParam = searchParams.get("date");
-    const viewParam = searchParams.get("view");
-    const moreParam = searchParams.get("more");
 
-    if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
-      void setActiveDate(dateParam);
-    }
-    if (viewParam && VALID_VIEWS.includes(viewParam as ViewName)) {
-      setActiveView(viewParam as ViewName, { keepMoreSub: true });
-    }
-    if (moreParam && VALID_MORE.includes(moreParam as MoreSubView) && moreParam !== "menu") {
-      setMoreSubView(moreParam as MoreSubView);
-    }
+    const parsed = readUrlState(searchParams.toString());
+    if (parsed.date) void setActiveDate(parsed.date);
+    if (parsed.view) setActiveView(parsed.view, { keepMoreSub: true });
+    if (parsed.more && parsed.more !== "menu") setMoreSubView(parsed.more);
+    else if (parsed.view === "more") setMoreSubView("menu");
+
+    const view = parsed.view || "day";
+    const date = parsed.date || activeDate;
+    const more = parsed.more && parsed.more !== "menu" ? parsed.more : "menu";
+
     urlSynced.current = true;
-  }, [loading, user, searchParams, setActiveDate, setActiveView, setMoreSubView]);
+    prevNav.current = { view, more, date };
+    router.replace(buildAppUrl(view, date, more), { scroll: false });
+  }, [loading, user, searchParams, setActiveDate, setActiveView, setMoreSubView, router, activeDate]);
 
   useEffect(() => {
-    if (!urlSynced.current || loading || !user) return;
-    const params = new URLSearchParams();
-    params.set("view", activeView);
-    params.set("date", activeDate);
-    if (activeView === "more" && moreSubView !== "menu") {
-      params.set("more", moreSubView);
+    if (!urlSynced.current || loading || !user || applyingHistory.current) return;
+
+    const prev = prevNav.current;
+    const next = { view: activeView, more: moreSubView, date: activeDate };
+    const url = buildAppUrl(activeView, activeDate, moreSubView);
+
+    if (!prev) {
+      prevNav.current = next;
+      return;
     }
-    router.replace(`/app?${params.toString()}`, { scroll: false });
+
+    const navChanged = prev.view !== next.view || prev.more !== next.more;
+    const dateChanged = prev.date !== next.date;
+
+    if (navChanged) {
+      router.push(url, { scroll: false });
+    } else if (dateChanged) {
+      router.replace(url, { scroll: false });
+    }
+
+    prevNav.current = next;
   }, [activeView, activeDate, moreSubView, loading, user, router]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const onPopState = () => {
+      applyingHistory.current = true;
+      applyUrlState(window.location.search);
+      const { view, more, date } = readUrlState(window.location.search);
+      prevNav.current = {
+        view: view || "day",
+        more: more || "menu",
+        date: date || activeDate,
+      };
+      applyingHistory.current = false;
+    };
+
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [user, activeDate, applyUrlState]);
 
   if (loading) {
     return (
@@ -101,6 +169,7 @@ export function AppShell() {
   if (!user) return null;
 
   const viewLabel = VIEW_LABEL[activeView];
+  const mobileLine = mobileHeaderLine(activeView, activeDate, calendarCursor);
 
   return (
     <div className="app-shell">
@@ -151,19 +220,16 @@ export function AppShell() {
             >
               ‹
             </button>
-            <div className="mobile-header-center">
-              <span className="mobile-view-chip">{viewLabel}</span>
-              <label className="mobile-date-hit">
-                <span className="mobile-date-text">{mobileTitle(activeView, activeDate, calendarCursor)}</span>
-                <input
-                  className="mobile-date-input"
-                  type="date"
-                  aria-label="날짜 선택"
-                  value={activeDate}
-                  onChange={(e) => setActiveDate(e.target.value)}
-                />
-              </label>
-            </div>
+            <label className="mobile-date-hit">
+              <span className="mobile-header-line">{mobileLine}</span>
+              <input
+                className="mobile-date-input"
+                type="date"
+                aria-label="날짜 선택"
+                value={activeDate}
+                onChange={(e) => setActiveDate(e.target.value)}
+              />
+            </label>
             <button
               className="ghost-btn icon-btn"
               type="button"

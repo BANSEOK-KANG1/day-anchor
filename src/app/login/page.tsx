@@ -31,7 +31,7 @@ export default function LoginPage() {
       setLoading(false);
       return;
     }
-    window.location.href = "/app";
+    window.location.replace("/app");
   }
 
   return (

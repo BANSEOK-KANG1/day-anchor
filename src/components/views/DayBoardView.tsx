@@ -90,13 +90,13 @@ export function DayBoardView() {
       {isEmpty ? (
         <section className="panel empty-day-panel">
           <div className="empty-state">
-            <p>아직 기록이 없어요. 빠른 입력으로 첫 일정을 추가해보세요.</p>
-            <div className="button-row">
-              <button type="button" className="primary-btn" onClick={() => openQuickCapture("schedule")}>
-                첫 일정 추가
+            <p className="empty-lead">기록이 비어 있어요.</p>
+            <div className="empty-actions">
+              <button type="button" className="primary-btn full" onClick={() => openQuickCapture("schedule")}>
+                + 일정 추가
               </button>
-              <button type="button" className="ghost-btn" onClick={() => seedSampleData()}>
-                샘플 채우기
+              <button type="button" className="ghost-btn full" onClick={() => seedSampleData()}>
+                샘플 넣기
               </button>
             </div>
           </div>
@@ -110,7 +110,7 @@ export function DayBoardView() {
           aria-expanded={planOpen}
           onClick={() => setPlanOpen((open) => !open)}
         >
-          <h2 className="section-title">오늘 계획</h2>
+          <h2 className="section-title">계획</h2>
           <span className="accordion-chevron">{planOpen ? "▾" : "▸"}</span>
         </button>
         {planOpen ? (

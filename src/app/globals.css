@@ -210,34 +210,63 @@ button {
 }
 
 .mobile-header-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  min-width: 0;
-  flex: 1;
-}
-
-.mobile-view-chip {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted);
-  letter-spacing: 0.04em;
+  display: none;
 }
 
 .mobile-date-hit {
   position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
+  flex: 1;
+  min-width: 0;
   cursor: pointer;
 }
 
-.mobile-date-text {
-  font-size: 17px;
+.mobile-header-line {
+  font-size: 16px;
   font-weight: 800;
   letter-spacing: -0.03em;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.mobile-view-chip {
+  display: none;
+}
+
+.mobile-date-text {
+  display: none;
+}
+
+.empty-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.empty-actions button {
+  white-space: nowrap;
+}
+
+.empty-lead {
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.back-chip {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.subview-header h2 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mobile-date-input {
@@ -1488,12 +1517,14 @@ button:disabled {
   }
   .nav-link {
     justify-content: center;
-    padding: 10px 8px;
-    font-size: 14px;
+    padding: 10px 4px;
+    font-size: 13px;
     font-weight: 700;
     border-radius: 12px;
     text-align: center;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .nav-link.active::before {
     left: 50%;

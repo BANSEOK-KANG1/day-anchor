@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/contexts/AppContext";
 import { MORE_SUB_LABEL, type MoreSubView } from "@/lib/types";
 import { ReviewView } from "@/components/views/ReviewView";
@@ -18,14 +19,19 @@ const MORE_ITEMS: { id: Exclude<MoreSubView, "menu">; desc: string }[] = [
 ];
 
 export function MoreView() {
+  const router = useRouter();
   const { moreSubView, setMoreSubView, exportData, signOut } = useApp();
 
   if (moreSubView !== "menu") {
     return (
       <div className="more-subview">
         <div className="subview-header">
-          <button type="button" className="ghost-btn small" onClick={() => setMoreSubView("menu")}>
-            ‹ 더보기
+          <button
+            type="button"
+            className="ghost-btn small back-chip"
+            onClick={() => router.back()}
+          >
+            ← 뒤로
           </button>
           <h2>{MORE_SUB_LABEL[moreSubView]}</h2>
         </div>
