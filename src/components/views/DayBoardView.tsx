@@ -114,30 +114,50 @@ export function DayBoardView() {
         </div>
       ) : null}
 
-      <section className="panel now-panel">
-        <div className="now-strip">
-          <div className="now-strip-main">
-            <h2 className="section-title">지금</h2>
-            <span className="pill time-pill">{currentTime}</span>
+      <section className="panel day-schedule-panel day-hero-panel">
+        <div className="day-hero-header">
+          <div className="day-hero-top">
+            <h2 className="hero-title">오늘 일정</h2>
+            <div className="header-chip-row">
+              <button className="primary-btn small add-chip" type="button" onClick={() => openQuickCapture("schedule")}>
+                + 일정
+              </button>
+              <button className="secondary-btn small add-chip" type="button" onClick={() => openQuickCapture("task")}>
+                + 할일
+              </button>
+            </div>
           </div>
-          <span className="pill completion-pill">{stats.completion}%</span>
+          <div className="day-glance-bar">
+            <div className="glance-stat">
+              <strong>{stats.completion}%</strong>
+              <span>완료</span>
+            </div>
+            <div className="glance-stat">
+              <strong>{blocks.length}</strong>
+              <span>일정</span>
+            </div>
+            <div className="glance-stat">
+              <strong>{tasks.length}</strong>
+              <span>할일</span>
+            </div>
+            <div className="glance-stat">
+              <strong>{currentTime}</strong>
+              <span>현재</span>
+            </div>
+          </div>
+          {currentBlock && isToday ? (
+            <div className="now-focus-bar">
+              <span className="tag tag-current">지금</span>
+              <span className="now-focus-time">
+                {formatTimeFromDb(currentBlock.start_time)}–{formatTimeFromDb(currentBlock.end_time)}
+              </span>
+              <strong className="now-focus-title">{currentBlock.title}</strong>
+            </div>
+          ) : null}
         </div>
-        {currentBlock && isToday ? (
-          <p className="now-summary">
-            <span className="tag tag-current">진행 중</span>
-            {formatTimeFromDb(currentBlock.start_time)}–{formatTimeFromDb(currentBlock.end_time)} ·{" "}
-            {currentBlock.title}
-          </p>
-        ) : (
-          <div className="empty-state compact-empty">
-            {isToday ? "진행 중인 일정 없음" : "오늘 날짜에만 표시됩니다"}
-          </div>
-        )}
-      </section>
 
-      {isEmpty ? (
-        <section className="panel empty-day-panel">
-          <div className="empty-state">
+        {isEmpty ? (
+          <div className="empty-state empty-in-hero">
             <p className="empty-lead">기록이 비어 있어요.</p>
             <div className="empty-actions">
               <button type="button" className="primary-btn full" onClick={() => openQuickCapture("schedule")}>
@@ -148,10 +168,20 @@ export function DayBoardView() {
               </button>
             </div>
           </div>
-        </section>
-      ) : null}
+        ) : (
+          <DayScheduleSection
+            blocks={blocks}
+            tasks={tasks}
+            currentBlockId={currentBlock?.id}
+            isToday={isToday}
+            onBlockDone={(id) => setBlockStatus(id, "done")}
+            onBlockSkip={(id) => setBlockStatus(id, "skipped")}
+            {...taskHandlers}
+          />
+        )}
+      </section>
 
-      <section className="panel plan-panel accordion-panel">
+      <section className="panel plan-panel accordion-panel secondary-panel">
         <button
           type="button"
           className="accordion-trigger"
@@ -179,30 +209,7 @@ export function DayBoardView() {
         ) : null}
       </section>
 
-      <section className="panel day-schedule-panel">
-        <div className="panel-header compact-header">
-          <h2 className="section-title">시간표 · 할 일</h2>
-          <div className="header-chip-row">
-            <button className="ghost-btn small add-chip" type="button" onClick={() => openQuickCapture("schedule")}>
-              일정
-            </button>
-            <button className="ghost-btn small add-chip" type="button" onClick={() => openQuickCapture("task")}>
-              할일
-            </button>
-          </div>
-        </div>
-        <DayScheduleSection
-          blocks={blocks}
-          tasks={tasks}
-          currentBlockId={currentBlock?.id}
-          isToday={isToday}
-          onBlockDone={(id) => setBlockStatus(id, "done")}
-          onBlockSkip={(id) => setBlockStatus(id, "skipped")}
-          {...taskHandlers}
-        />
-      </section>
-
-      <section className="panel notes-preview-panel">
+      <section className="panel notes-preview-panel secondary-panel">
         <div className="panel-header compact-header">
           <h2 className="section-title">메모</h2>
           <button
@@ -252,7 +259,7 @@ export function DayBoardView() {
         )}
       </section>
 
-      <section className="panel reminder-panel mobile-collapsed-panel">
+      <section className="panel reminder-panel mobile-collapsed-panel secondary-panel">
         <div className="panel-header compact-header">
           <h2 className="section-title">알림</h2>
           <button

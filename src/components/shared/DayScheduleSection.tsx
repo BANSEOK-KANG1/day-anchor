@@ -60,25 +60,30 @@ export function DayScheduleSection({
             className={`schedule-group ${isCurrent ? "schedule-group-current" : ""}`}
           >
             <article className="schedule-block-row">
-              <div className="schedule-block-time">
-                {formatTimeFromDb(block.start_time)}–{formatTimeFromDb(block.end_time)}
+              <div className="schedule-block-time-col">
+                <span className="schedule-block-time-start">
+                  {formatTimeFromDb(block.start_time)}
+                </span>
+                <span className="schedule-block-time-end">
+                  {formatTimeFromDb(block.end_time)}
+                </span>
               </div>
               <div className="schedule-block-main">
                 <div className="schedule-block-head">
-                  <strong>{block.title}</strong>
+                  <strong className="schedule-block-title">{block.title}</strong>
                   {isCurrent ? <span className="tag tag-current">지금</span> : null}
                 </div>
                 {block.memo ? <p className="schedule-block-memo">{block.memo}</p> : null}
-                <div className="meta-row">
+                <div className="meta-row schedule-meta-row">
                   <span className="tag">{BLOCK_TYPE_LABEL[block.block_type]}</span>
                   <span className={`tag status-${block.status}`}>
                     {BLOCK_STATUS_LABEL[block.status]}
                   </span>
                   {blockTasks.length ? (
-                    <span className="tag">할 일 {blockTasks.length}</span>
+                    <span className="tag tag-count">할일 {blockTasks.length}</span>
                   ) : null}
                 </div>
-                <div className="item-actions schedule-block-actions">
+                <div className="schedule-block-actions">
                   <button type="button" className="primary-mini" onClick={() => onBlockDone(block.id)}>
                     완료
                   </button>
