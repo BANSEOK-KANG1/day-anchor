@@ -6,13 +6,8 @@ import {
   getLocalDateString,
 } from "@/lib/date";
 import { useApp } from "@/contexts/AppContext";
-import {
-  BLOCK_STATUS_LABEL,
-  BLOCK_TYPE_LABEL,
-  type ScheduleBlock,
-} from "@/lib/types";
-import { BlockTimeline } from "@/components/shared/BlockTimeline";
-import { TaskList } from "@/components/shared/TaskList";
+import type { Task } from "@/lib/types";
+import { DayScheduleSection } from "@/components/shared/DayScheduleSection";
 
 export function DayBoardView() {
   const {
@@ -49,6 +44,55 @@ export function DayBoardView() {
   const isEmpty =
     !day?.main_goal && !blocks.length && !tasks.length && !notes.length;
 
+  const taskHandlers = {
+    onToggle: toggleTask,
+    onTaskDone: async (id: string) => {
+      const task = tasks.find((item) => item.id === id);
+      if (!task) return;
+      await saveTask({
+        id: task.id,
+        title: task.title,
+        priority: task.priority,
+        blockId: task.schedule_block_id,
+        dueTime: task.due_time,
+        status: "done",
+      });
+    },
+    onTaskSkip: async (id: string) => {
+      const task = tasks.find((item) => item.id === id);
+      if (!task) return;
+      await saveTask({
+        id: task.id,
+        title: task.title,
+        priority: task.priority,
+        blockId: task.schedule_block_id,
+        dueTime: task.due_time,
+        status: "skipped",
+        delayReason: "이유 미기록",
+      });
+    },
+    onTaskCarry: async (id: string) => {
+      const task = tasks.find((item) => item.id === id);
+      if (!task) return;
+      await saveTask({
+        id: task.id,
+        title: task.title,
+        priority: task.priority,
+        blockId: task.schedule_block_id,
+        dueTime: task.due_time,
+        status: "carried",
+        delayReason: "내일 처리 예정",
+      });
+    },
+    onTaskEdit: (_task: Task) => {
+      setMoreSubView("tasks");
+      setActiveView("more", { keepMoreSub: true });
+    },
+    onTaskDelete: async (id: string) => {
+      if (confirm("이 할 일을 삭제할까요?")) await removeTask(id);
+    },
+  };
+
   return (
     <div className="day-board">
       {showReviewBanner ? (
@@ -79,7 +123,11 @@ export function DayBoardView() {
           <span className="pill completion-pill">{stats.completion}%</span>
         </div>
         {currentBlock && isToday ? (
-          <CurrentMiniCard block={currentBlock} />
+          <p className="now-summary">
+            <span className="tag tag-current">진행 중</span>
+            {formatTimeFromDb(currentBlock.start_time)}–{formatTimeFromDb(currentBlock.end_time)} ·{" "}
+            {currentBlock.title}
+          </p>
         ) : (
           <div className="empty-state compact-empty">
             {isToday ? "진행 중인 일정 없음" : "오늘 날짜에만 표시됩니다"}
@@ -131,80 +179,26 @@ export function DayBoardView() {
         ) : null}
       </section>
 
-      <section className="panel agenda-panel">
+      <section className="panel day-schedule-panel">
         <div className="panel-header compact-header">
-          <h2 className="section-title">시간표</h2>
-          <button className="ghost-btn small add-chip" type="button" onClick={() => openQuickCapture("schedule")}>
-            추가
-          </button>
+          <h2 className="section-title">시간표 · 할 일</h2>
+          <div className="header-chip-row">
+            <button className="ghost-btn small add-chip" type="button" onClick={() => openQuickCapture("schedule")}>
+              일정
+            </button>
+            <button className="ghost-btn small add-chip" type="button" onClick={() => openQuickCapture("task")}>
+              할일
+            </button>
+          </div>
         </div>
-        <BlockTimeline
+        <DayScheduleSection
           blocks={blocks}
-          editable
-          onDone={(id) => setBlockStatus(id, "done")}
-          onSkip={(id) => setBlockStatus(id, "skipped")}
-        />
-      </section>
-
-      <section className="panel checklist-panel">
-        <div className="panel-header compact-header">
-          <h2 className="section-title">할 일</h2>
-          <button className="ghost-btn small add-chip" type="button" onClick={() => openQuickCapture("task")}>
-            추가
-          </button>
-        </div>
-        <TaskList
           tasks={tasks}
-          blocks={blocks}
-          compact
-          mobileMenu
-          hideMeta
-          onToggle={toggleTask}
-          onDone={async (id) => {
-            const task = tasks.find((item) => item.id === id);
-            if (!task) return;
-            await saveTask({
-              id: task.id,
-              title: task.title,
-              priority: task.priority,
-              blockId: task.schedule_block_id,
-              dueTime: task.due_time,
-              status: "done",
-            });
-          }}
-          onSkip={async (id) => {
-            const task = tasks.find((item) => item.id === id);
-            if (!task) return;
-            await saveTask({
-              id: task.id,
-              title: task.title,
-              priority: task.priority,
-              blockId: task.schedule_block_id,
-              dueTime: task.due_time,
-              status: "skipped",
-              delayReason: "이유 미기록",
-            });
-          }}
-          onCarry={async (id) => {
-            const task = tasks.find((item) => item.id === id);
-            if (!task) return;
-            await saveTask({
-              id: task.id,
-              title: task.title,
-              priority: task.priority,
-              blockId: task.schedule_block_id,
-              dueTime: task.due_time,
-              status: "carried",
-              delayReason: "내일 처리 예정",
-            });
-          }}
-          onEdit={() => {
-            setMoreSubView("tasks");
-            setActiveView("more", { keepMoreSub: true });
-          }}
-          onDelete={async (id) => {
-            if (confirm("이 할 일을 삭제할까요?")) await removeTask(id);
-          }}
+          currentBlockId={currentBlock?.id}
+          isToday={isToday}
+          onBlockDone={(id) => setBlockStatus(id, "done")}
+          onBlockSkip={(id) => setBlockStatus(id, "skipped")}
+          {...taskHandlers}
         />
       </section>
 
@@ -285,26 +279,6 @@ export function DayBoardView() {
         )}
       </section>
     </div>
-  );
-}
-
-function CurrentMiniCard({ block }: { block: ScheduleBlock }) {
-  return (
-    <article className="timeline-item current-mini-card compact-current">
-      <div className="timeline-time oneline-time">
-        {formatTimeFromDb(block.start_time)}–{formatTimeFromDb(block.end_time)}
-      </div>
-      <div className="timeline-body">
-        <strong>{block.title}</strong>
-        <p>{block.memo || "지금 이 블록에 집중해보세요."}</p>
-        <div className="meta-row">
-          <span className="tag">{BLOCK_TYPE_LABEL[block.block_type]}</span>
-          <span className={`tag status-${block.status}`}>
-            {BLOCK_STATUS_LABEL[block.status]}
-          </span>
-        </div>
-      </div>
-    </article>
   );
 }
 

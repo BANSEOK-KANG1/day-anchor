@@ -1278,6 +1278,135 @@ button:disabled {
   gap: var(--space-3);
 }
 
+.day-board .panel {
+  background: var(--surface);
+  isolation: isolate;
+}
+
+.day-schedule-panel {
+  overflow: hidden;
+}
+
+.header-chip-row {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.now-summary {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.tag-current {
+  background: var(--accent);
+  color: #fff;
+  margin-right: 6px;
+}
+
+.day-schedule-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.schedule-group {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.schedule-group-current {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(17, 24, 39, 0.12);
+}
+
+.schedule-block-row {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px;
+  background: var(--surface);
+}
+
+.schedule-block-time {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.schedule-block-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.schedule-block-head strong {
+  letter-spacing: -0.02em;
+}
+
+.schedule-block-memo {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.schedule-block-actions {
+  margin-top: 10px;
+}
+
+.schedule-nested-tasks {
+  border-top: 1px solid var(--line);
+  background: var(--surface-2);
+  padding: 4px 12px 8px;
+}
+
+.schedule-nested-tasks-root {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.schedule-subtitle {
+  margin: 0;
+  padding: 12px 14px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.task-list.nested {
+  gap: 0;
+}
+
+.task-card-nested {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 10px 2px;
+  box-shadow: none;
+}
+
+.task-list.nested .task-card-nested:last-child {
+  border-bottom: none;
+}
+
+.sync-note {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .review-banner {
   display: flex;
   align-items: center;
@@ -1560,10 +1689,13 @@ button:disabled {
   .day-board {
     gap: 10px;
   }
-  .panel {
-    padding: 14px;
-    border-radius: 18px;
+  .day-board .panel {
+    background: var(--surface);
     box-shadow: none;
+  }
+  .schedule-block-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
   .panel-header {
     margin-bottom: 12px;

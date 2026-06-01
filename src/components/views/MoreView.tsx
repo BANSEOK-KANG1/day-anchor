@@ -75,7 +75,7 @@ export function MoreView() {
             <h2>설정</h2>
           </div>
         </div>
-        <div className="button-row">
+        <div className="button-row settings-note">
           <Link href="/settings/import" className="ghost-btn">
             데이터 가져오기
           </Link>
@@ -86,6 +86,9 @@ export function MoreView() {
             로그아웃
           </button>
         </div>
+        <p className="sync-note">
+          데이터는 Supabase 계정으로 동기화됩니다. Google Calendar 연동은 아직 지원하지 않습니다.
+        </p>
       </section>
     </div>
   );

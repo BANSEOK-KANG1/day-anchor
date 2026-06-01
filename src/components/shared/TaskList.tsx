@@ -10,6 +10,7 @@ interface TaskListProps {
   compact?: boolean;
   mobileMenu?: boolean;
   hideMeta?: boolean;
+  nested?: boolean;
   onToggle?: (taskId: string, done: boolean) => void;
   onDone?: (taskId: string) => void;
   onSkip?: (taskId: string) => void;
@@ -24,6 +25,7 @@ export function TaskList({
   compact = false,
   mobileMenu = false,
   hideMeta = false,
+  nested = false,
   onToggle,
   onDone,
   onSkip,
@@ -49,7 +51,7 @@ export function TaskList({
   const showActions = !compact || mobileMenu;
 
   return (
-    <div className={`task-list ${compact ? "" : "large"}`}>
+    <div className={`task-list ${compact ? "" : "large"} ${nested ? "nested" : ""}`}>
       {tasks.map((task) => {
         const done = task.status === "done";
         const statusClass =
@@ -62,7 +64,7 @@ export function TaskList({
                 : "";
 
         return (
-          <article key={task.id} className="task-card" data-task-id={task.id}>
+          <article key={task.id} className={`task-card ${nested ? "task-card-nested" : ""}`} data-task-id={task.id}>
             <input
               type="checkbox"
               checked={done}
