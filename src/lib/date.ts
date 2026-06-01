@@ -47,10 +47,36 @@ export function shiftDate(dateString: string, days: number): string {
   return getLocalDateString(d);
 }
 
-export function shiftMonth(dateString: string, months: number): string {
-  const d = new Date(`${dateString}T00:00:00`);
+/** Move a month-start cursor by N months (returns YYYY-MM-01). */
+export function shiftMonthCursor(monthStart: string, months: number): string {
+  const d = new Date(`${monthStart}T00:00:00`);
   d.setMonth(d.getMonth() + months, 1);
   return monthStartString(getLocalDateString(d));
+}
+
+/** Shift a date by N months while preserving day-of-month when possible. */
+export function shiftMonthPreserveDay(dateString: string, months: number): string {
+  const d = new Date(`${dateString}T00:00:00`);
+  const dayOfMonth = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + months);
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(dayOfMonth, lastDay));
+  return getLocalDateString(d);
+}
+
+/** @deprecated Use shiftMonthCursor or shiftMonthPreserveDay */
+export function shiftMonth(dateString: string, months: number): string {
+  return shiftMonthCursor(monthStartString(dateString), months);
+}
+
+export function formatShortKoreanDate(dateString: string): string {
+  const d = new Date(`${dateString}T00:00:00`);
+  return new Intl.DateTimeFormat("ko-KR", {
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  }).format(d);
 }
 
 export function getLastNDates(fromDate: string, n: number): string[] {

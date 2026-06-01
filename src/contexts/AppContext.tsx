@@ -27,6 +27,7 @@ import {
   fetchMonthSummary,
   logActivityEvent,
   markReminderFired,
+  saveReviewText,
   updateBlockStatus,
   updateDayPlan,
   upsertScheduleBlock,
@@ -38,7 +39,8 @@ import {
   monthStartString,
   nowTimeString,
   shiftDate,
-  shiftMonth,
+  shiftMonthCursor,
+  shiftMonthPreserveDay,
 } from "@/lib/date";
 import { buildInsightCards, calculateStats, getCurrentBlock } from "@/lib/stats";
 import type {
@@ -52,6 +54,8 @@ import type {
   Task,
   TaskStatus,
   ViewName,
+  MoreSubView,
+  QuickCaptureTab,
 } from "@/lib/types";
 
 interface ToastState {
@@ -65,6 +69,9 @@ interface AppContextValue {
   activeDate: string;
   calendarCursor: string;
   activeView: ViewName;
+  moreSubView: MoreSubView;
+  quickCaptureOpen: boolean;
+  quickCaptureTab: QuickCaptureTab;
   day: DayRecord | null;
   blocks: ScheduleBlock[];
   tasks: Task[];
@@ -85,7 +92,10 @@ interface AppContextValue {
   currentTime: string;
   toast: ToastState;
   supabaseReady: boolean;
-  setActiveView: (view: ViewName) => void;
+  setActiveView: (view: ViewName, options?: { keepMoreSub?: boolean }) => void;
+  setMoreSubView: (sub: MoreSubView) => void;
+  openQuickCapture: (tab?: QuickCaptureTab) => void;
+  closeQuickCapture: () => void;
   setActiveDate: (date: string, syncMonth?: boolean) => Promise<void>;
   shiftDay: (delta: number) => Promise<void>;
   shiftMonthView: (delta: number) => Promise<void>;
@@ -118,7 +128,9 @@ interface AppContextValue {
   saveVoiceNote: (blob: Blob, durationSec: number, blockId: string | null) => Promise<void>;
   removeNote: (note: Note) => Promise<void>;
   addReminderPrompt: (time: string, prompt: string) => Promise<void>;
-  finishReview: () => Promise<void>;
+  saveReviewNote: (text: string) => Promise<void>;
+  finishReview: (reviewText?: string) => Promise<void>;
+  carryAllIncompleteTasks: () => Promise<void>;
   seedSampleData: () => Promise<void>;
   exportData: () => void;
   refreshAll: () => Promise<void>;
@@ -135,7 +147,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [activeDate, setActiveDateState] = useState(getLocalDateString());
   const [calendarCursor, setCalendarCursor] = useState(monthStartString(getLocalDateString()));
-  const [activeView, setActiveView] = useState<ViewName>("today");
+  const [activeView, setActiveViewState] = useState<ViewName>("day");
+  const [moreSubView, setMoreSubView] = useState<MoreSubView>("menu");
+  const [quickCaptureOpen, setQuickCaptureOpen] = useState(false);
+  const [quickCaptureTab, setQuickCaptureTab] = useState<QuickCaptureTab>("schedule");
   const [day, setDay] = useState<DayRecord | null>(null);
   const [blocks, setBlocks] = useState<ScheduleBlock[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -162,6 +177,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => getCurrentBlock(blocks, activeDate),
     [blocks, activeDate],
   );
+
+  const setActiveView = useCallback((view: ViewName, options?: { keepMoreSub?: boolean }) => {
+    setActiveViewState(view);
+    if (view === "more" && !options?.keepMoreSub) setMoreSubView("menu");
+  }, []);
+
+  const openQuickCapture = useCallback((tab: QuickCaptureTab = "schedule") => {
+    setQuickCaptureTab(tab);
+    setQuickCaptureOpen(true);
+  }, []);
+
+  const closeQuickCapture = useCallback(() => {
+    setQuickCaptureOpen(false);
+  }, []);
 
   const showToast = useCallback((message: string) => {
     setToast({ message, visible: true });
@@ -311,11 +340,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const shiftMonthView = useCallback(
     async (delta: number) => {
-      const next = shiftMonth(calendarCursor, delta);
-      setCalendarCursor(next);
-      await setActiveDate(next, false);
+      const nextCursor = shiftMonthCursor(calendarCursor, delta);
+      setCalendarCursor(nextCursor);
+      const nextDate = shiftMonthPreserveDay(activeDate, delta);
+      await setActiveDate(nextDate, false);
     },
-    [calendarCursor, setActiveDate],
+    [calendarCursor, activeDate, setActiveDate],
   );
 
   const goToday = useCallback(async () => {
@@ -478,13 +508,47 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [supabase, user, withDay, showToast, refreshAll],
   );
 
-  const finishReview = useCallback(async () => {
-    const currentDay = await withDay();
-    const updated = await completeReview(supabase, currentDay.id);
-    setDay(updated);
-    showToast("오늘 회고가 완료 처리되었습니다.");
+  const saveReviewNote = useCallback(
+    async (text: string) => {
+      const currentDay = await withDay();
+      const updated = await saveReviewText(supabase, currentDay.id, text);
+      setDay(updated);
+      showToast("한 줄 회고가 저장되었습니다.");
+    },
+    [supabase, withDay, showToast],
+  );
+
+  const finishReview = useCallback(
+    async (reviewText?: string) => {
+      const currentDay = await withDay();
+      const updated = await completeReview(supabase, currentDay.id, reviewText);
+      setDay(updated);
+      showToast("오늘 회고가 완료 처리되었습니다.");
+      await refreshAll();
+    },
+    [supabase, withDay, showToast, refreshAll],
+  );
+
+  const carryAllIncompleteTasks = useCallback(async () => {
+    const incomplete = tasks.filter((task) => task.status === "todo" || task.status === "skipped");
+    if (!incomplete.length) {
+      showToast("내일로 넘길 미완료 항목이 없습니다.");
+      return;
+    }
+    for (const task of incomplete) {
+      await upsertTask(supabase, user!.id, task.day_id, {
+        id: task.id,
+        title: task.title,
+        priority: task.priority,
+        schedule_block_id: task.schedule_block_id,
+        due_time: task.due_time,
+        status: "carried",
+        delay_reason: "내일 처리 예정",
+      });
+    }
+    showToast(`${incomplete.length}개 항목을 내일로 넘겼습니다.`);
     await refreshAll();
-  }, [supabase, withDay, showToast, refreshAll]);
+  }, [supabase, user, tasks, showToast, refreshAll]);
 
   const seedSampleData = useCallback(async () => {
     const currentDay = await withDay();
@@ -555,6 +619,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     activeDate,
     calendarCursor,
     activeView,
+    moreSubView,
+    quickCaptureOpen,
+    quickCaptureTab,
     day,
     blocks,
     tasks,
@@ -576,6 +643,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toast,
     supabaseReady,
     setActiveView,
+    setMoreSubView,
+    openQuickCapture,
+    closeQuickCapture,
     setActiveDate,
     shiftDay,
     shiftMonthView,
@@ -592,7 +662,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveVoiceNote,
     removeNote,
     addReminderPrompt,
+    saveReviewNote,
     finishReview,
+    carryAllIncompleteTasks,
     seedSampleData,
     exportData,
     refreshAll,

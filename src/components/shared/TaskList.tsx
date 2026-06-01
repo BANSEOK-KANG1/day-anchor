@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { formatTimeFromDb } from "@/lib/date";
 import { TASK_STATUS_LABEL, type ScheduleBlock, type Task } from "@/lib/types";
 
@@ -7,6 +8,7 @@ interface TaskListProps {
   tasks: Task[];
   blocks?: ScheduleBlock[];
   compact?: boolean;
+  mobileMenu?: boolean;
   onToggle?: (taskId: string, done: boolean) => void;
   onDone?: (taskId: string) => void;
   onSkip?: (taskId: string) => void;
@@ -19,6 +21,7 @@ export function TaskList({
   tasks,
   blocks = [],
   compact = false,
+  mobileMenu = false,
   onToggle,
   onDone,
   onSkip,
@@ -26,6 +29,8 @@ export function TaskList({
   onEdit,
   onDelete,
 }: TaskListProps) {
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
   if (!tasks.length) {
     return (
       <div className="empty-state">
@@ -38,6 +43,8 @@ export function TaskList({
     if (!blockId) return "연결 일정 없음";
     return blocks.find((block) => block.id === blockId)?.title || "삭제된 일정";
   };
+
+  const showActions = !compact || mobileMenu;
 
   return (
     <div className={`task-list ${compact ? "" : "large"}`}>
@@ -60,8 +67,44 @@ export function TaskList({
               onChange={(e) => onToggle?.(task.id, e.target.checked)}
               aria-label="할 일 완료 처리"
             />
-            <div>
-              <p className={`task-title ${done ? "done" : ""}`}>{task.title}</p>
+            <div className="task-card-body">
+              <div className="task-card-head">
+                <p className={`task-title ${done ? "done" : ""}`}>{task.title}</p>
+                {showActions && mobileMenu ? (
+                  <div className="task-menu-wrap">
+                    <button
+                      type="button"
+                      className="task-menu-btn"
+                      aria-label="할 일 메뉴"
+                      aria-expanded={openMenuId === task.id}
+                      onClick={() =>
+                        setOpenMenuId((id) => (id === task.id ? null : task.id))
+                      }
+                    >
+                      ⋯
+                    </button>
+                    {openMenuId === task.id ? (
+                      <div className="task-menu-popover">
+                        <button type="button" onClick={() => { onDone?.(task.id); setOpenMenuId(null); }}>
+                          완료
+                        </button>
+                        <button type="button" onClick={() => { onSkip?.(task.id); setOpenMenuId(null); }}>
+                          미룸
+                        </button>
+                        <button type="button" onClick={() => { onCarry?.(task.id); setOpenMenuId(null); }}>
+                          내일로
+                        </button>
+                        <button type="button" onClick={() => { onEdit?.(task); setOpenMenuId(null); }}>
+                          수정
+                        </button>
+                        <button type="button" onClick={() => { onDelete?.(task.id); setOpenMenuId(null); }}>
+                          삭제
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
               <p className="task-meta">
                 {task.due_time ? `${formatTimeFromDb(task.due_time)} · ` : ""}
                 {findBlockTitle(task.schedule_block_id)} · 우선순위 {task.priority} ·{" "}
@@ -73,7 +116,7 @@ export function TaskList({
                   </>
                 ) : null}
               </p>
-              {!compact ? (
+              {showActions && !mobileMenu ? (
                 <div className="item-actions">
                   <button type="button" className="primary-mini" onClick={() => onDone?.(task.id)}>
                     완료

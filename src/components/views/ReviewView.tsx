@@ -1,10 +1,28 @@
 "use client";
 
+import { FormEvent, useState, useEffect } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { TaskList } from "@/components/shared/TaskList";
 
 export function ReviewView() {
-  const { stats, tasks, blocks, finishReview, saveTask, removeTask, showToast } = useApp();
+  const {
+    day,
+    stats,
+    tasks,
+    blocks,
+    finishReview,
+    saveReviewNote,
+    carryAllIncompleteTasks,
+    saveTask,
+    removeTask,
+    showToast,
+  } = useApp();
+
+  const [reviewText, setReviewText] = useState(day?.review_text ?? "");
+
+  useEffect(() => {
+    setReviewText(day?.review_text ?? "");
+  }, [day?.id, day?.review_text]);
 
   const flowDescription =
     stats.flowScore >= 80
@@ -17,6 +35,11 @@ export function ReviewView() {
     ["todo", "skipped", "carried"].includes(task.status),
   );
 
+  async function handleReviewSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await saveReviewNote(reviewText);
+  }
+
   return (
     <div className="grid two-col">
       <section className="panel">
@@ -25,7 +48,11 @@ export function ReviewView() {
             <p className="eyebrow">Daily review</p>
             <h2>하루 회고</h2>
           </div>
-          <button className="primary-btn small" type="button" onClick={() => finishReview()}>
+          <button
+            className="primary-btn small"
+            type="button"
+            onClick={() => finishReview(reviewText)}
+          >
             회고 완료
           </button>
         </div>
@@ -52,6 +79,26 @@ export function ReviewView() {
             <span>내일로 넘김</span>
           </div>
         </div>
+
+        <form className="stack-form review-text-form" onSubmit={handleReviewSave}>
+          <label>
+            한 줄 회고
+            <textarea
+              rows={3}
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+              placeholder="오늘 가장 잘한 것, 내일 바꿀 것을 한 줄로 적어보세요."
+            />
+          </label>
+          <div className="button-row">
+            <button className="secondary-btn" type="submit">
+              회고 저장
+            </button>
+            <button className="ghost-btn" type="button" onClick={() => carryAllIncompleteTasks()}>
+              미완료 전부 내일로
+            </button>
+          </div>
+        </form>
       </section>
 
       <section className="panel">
@@ -102,7 +149,7 @@ export function ReviewView() {
                 delayReason: "내일 처리 예정",
               });
             }}
-            onEdit={() => showToast("할 일 탭에서 수정하세요.")}
+            onEdit={() => showToast("할 일 상세에서 수정하세요.")}
             onDelete={async (id) => {
               if (confirm("이 할 일을 삭제할까요?")) await removeTask(id);
             }}

@@ -154,10 +154,33 @@ export async function updateDayPlan(
   return data as DayRecord;
 }
 
-export async function completeReview(supabase: SupabaseClient, dayId: string) {
+export async function saveReviewText(
+  supabase: SupabaseClient,
+  dayId: string,
+  reviewText: string,
+) {
   const { data, error } = await supabase
     .from("days")
-    .update({ review_completed: true, updated_at: new Date().toISOString() })
+    .update({ review_text: reviewText, updated_at: new Date().toISOString() })
+    .eq("id", dayId)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data as DayRecord;
+}
+
+export async function completeReview(
+  supabase: SupabaseClient,
+  dayId: string,
+  reviewText?: string,
+) {
+  const { data, error } = await supabase
+    .from("days")
+    .update({
+      review_completed: true,
+      ...(reviewText !== undefined ? { review_text: reviewText } : {}),
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", dayId)
     .select("*")
     .single();

@@ -10,7 +10,9 @@ export type BlockType =
 export type BlockStatus = "planned" | "doing" | "done" | "skipped";
 export type TaskStatus = "todo" | "done" | "skipped" | "carried";
 export type NoteType = "text" | "voice";
-export type ViewName = "today" | "schedule" | "tasks" | "notes" | "review" | "insights";
+export type ViewName = "day" | "month" | "more";
+export type MoreSubView = "menu" | "review" | "insights" | "schedule" | "tasks" | "notes";
+export type QuickCaptureTab = "schedule" | "task" | "note" | "voice";
 
 export interface DayRecord {
   id: string;
@@ -143,19 +145,17 @@ export const TASK_STATUS_LABEL: Record<TaskStatus, string> = {
 };
 
 export const VIEW_LABEL: Record<ViewName, string> = {
-  today: "달력",
-  schedule: "일정",
-  tasks: "할 일",
-  notes: "메모",
-  review: "회고",
-  insights: "분석",
+  day: "오늘",
+  month: "달력",
+  more: "더보기",
 };
 
-export const NAV_VIEWS: ViewName[] = [
-  "today",
-  "schedule",
-  "tasks",
-  "notes",
-  "review",
-  "insights",
-];
+export const NAV_VIEWS: ViewName[] = ["day", "month", "more"];
+
+export const MORE_SUB_LABEL: Record<Exclude<MoreSubView, "menu">, string> = {
+  review: "회고",
+  insights: "분석",
+  schedule: "일정 상세",
+  tasks: "할 일 상세",
+  notes: "메모 상세",
+};
