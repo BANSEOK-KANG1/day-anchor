@@ -17,7 +17,7 @@ const MORE_ITEMS: { id: Exclude<MoreSubView, "menu">; desc: string }[] = [
   { id: "schedule", desc: "일정 상세 편집" },
   { id: "tasks", desc: "할 일 상세 편집" },
   { id: "notes", desc: "메모·음성 전체 목록" },
-  { id: "widget", desc: "위젯 키·URL·Android 가이드" },
+  { id: "widget", desc: "처음 설정 가이드 · SQL · 키 발급" },
 ];
 
 export function MoreView() {
