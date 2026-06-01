@@ -21,7 +21,7 @@ import { PwaUpdateBanner } from "@/components/PwaUpdateBanner";
 import type { QuickCaptureTab } from "@/lib/types";
 
 const VALID_VIEWS: ViewName[] = ["day", "month", "more"];
-const VALID_MORE: MoreSubView[] = ["menu", "review", "insights", "schedule", "tasks", "notes"];
+const VALID_MORE: MoreSubView[] = ["menu", "review", "insights", "schedule", "tasks", "notes", "widget"];
 
 function desktopTitle(view: ViewName, activeDate: string, calendarCursor: string): string {
   if (view === "day") return formatShortKoreanDate(activeDate);

@@ -9,6 +9,7 @@ import { InsightsView } from "@/components/views/InsightsView";
 import { ScheduleView } from "@/components/views/ScheduleView";
 import { TasksView } from "@/components/views/TasksView";
 import { NotesView } from "@/components/views/NotesView";
+import { WidgetSettingsView } from "@/components/views/WidgetSettingsView";
 
 const MORE_ITEMS: { id: Exclude<MoreSubView, "menu">; desc: string }[] = [
   { id: "review", desc: "하루 회고와 내일 이월" },
@@ -16,6 +17,7 @@ const MORE_ITEMS: { id: Exclude<MoreSubView, "menu">; desc: string }[] = [
   { id: "schedule", desc: "일정 상세 편집" },
   { id: "tasks", desc: "할 일 상세 편집" },
   { id: "notes", desc: "메모·음성 전체 목록" },
+  { id: "widget", desc: "위젯 키·URL·Android 가이드" },
 ];
 
 export function MoreView() {
@@ -40,6 +42,7 @@ export function MoreView() {
         {moreSubView === "schedule" ? <ScheduleView /> : null}
         {moreSubView === "tasks" ? <TasksView /> : null}
         {moreSubView === "notes" ? <NotesView /> : null}
+        {moreSubView === "widget" ? <WidgetSettingsView /> : null}
       </div>
     );
   }

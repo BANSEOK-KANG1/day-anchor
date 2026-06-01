@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_name">Day Anchor 일정</string>
+    <!-- 앱 → 더보기 → 홈 화면 위젯에서 복사한 API URL -->
+    <string name="widget_api_url">https://day-anchor.vercel.app/api/widget/today?token=YOUR_TOKEN</string>
+    <!-- 탭 시 열 URL (위젯 화면 URL) -->
+    <string name="widget_screen_url">https://day-anchor.vercel.app/widget?token=YOUR_TOKEN</string>
+</resources>

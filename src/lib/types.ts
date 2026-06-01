@@ -11,7 +11,7 @@ export type BlockStatus = "planned" | "doing" | "done" | "skipped";
 export type TaskStatus = "todo" | "done" | "skipped" | "carried";
 export type NoteType = "text" | "voice";
 export type ViewName = "day" | "month" | "more";
-export type MoreSubView = "menu" | "review" | "insights" | "schedule" | "tasks" | "notes";
+export type MoreSubView = "menu" | "review" | "insights" | "schedule" | "tasks" | "notes" | "widget";
 export type QuickCaptureTab = "schedule" | "task" | "note" | "voice";
 
 export interface DayRecord {
@@ -158,4 +158,5 @@ export const MORE_SUB_LABEL: Record<Exclude<MoreSubView, "menu">, string> = {
   schedule: "일정 상세",
   tasks: "할 일 상세",
   notes: "메모 상세",
+  widget: "홈 화면 위젯",
 };
