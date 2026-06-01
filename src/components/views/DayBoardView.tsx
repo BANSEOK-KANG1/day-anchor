@@ -6,6 +6,7 @@ import {
   getLocalDateString,
 } from "@/lib/date";
 import { useApp } from "@/contexts/AppContext";
+import { useMobileLayout } from "@/lib/useMobileLayout";
 import type { Task } from "@/lib/types";
 import { DayScheduleSection } from "@/components/shared/DayScheduleSection";
 
@@ -33,6 +34,7 @@ export function DayBoardView() {
     showToast,
   } = useApp();
 
+  const mobileLayout = useMobileLayout();
   const todayString = getLocalDateString();
   const isToday = activeDate === todayString;
   const hour = new Date().getHours();
@@ -40,6 +42,7 @@ export function DayBoardView() {
   const planExpanded = false;
   const [planOpen, setPlanOpen] = useState(planExpanded);
   const [reminderOpen, setReminderOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
 
   const isEmpty =
     !day?.main_goal && !blocks.length && !tasks.length && !notes.length;
@@ -127,24 +130,6 @@ export function DayBoardView() {
               </button>
             </div>
           </div>
-          <div className="day-glance-bar">
-            <div className="glance-stat">
-              <strong>{stats.completion}%</strong>
-              <span>완료</span>
-            </div>
-            <div className="glance-stat">
-              <strong>{blocks.length}</strong>
-              <span>일정</span>
-            </div>
-            <div className="glance-stat">
-              <strong>{tasks.length}</strong>
-              <span>할일</span>
-            </div>
-            <div className="glance-stat">
-              <strong>{currentTime}</strong>
-              <span>현재</span>
-            </div>
-          </div>
           {currentBlock && isToday ? (
             <div className="now-focus-bar">
               <span className="tag tag-current">지금</span>
@@ -156,31 +141,90 @@ export function DayBoardView() {
           ) : null}
         </div>
 
-        {isEmpty ? (
-          <div className="empty-state empty-in-hero">
-            <p className="empty-lead">기록이 비어 있어요.</p>
-            <div className="empty-actions">
-              <button type="button" className="primary-btn full" onClick={() => openQuickCapture("schedule")}>
-                + 일정 추가
-              </button>
-              <button type="button" className="ghost-btn full" onClick={() => seedSampleData()}>
-                샘플 넣기
-              </button>
+        <div className="day-schedule-body">
+          {isEmpty ? (
+            <div className="empty-state empty-in-hero">
+              <p className="empty-lead">기록이 비어 있어요.</p>
+              <div className="empty-actions">
+                <button type="button" className="primary-btn full" onClick={() => openQuickCapture("schedule")}>
+                  + 일정 추가
+                </button>
+                <button type="button" className="ghost-btn full" onClick={() => seedSampleData()}>
+                  샘플 넣기
+                </button>
+              </div>
             </div>
+          ) : (
+            <DayScheduleSection
+              blocks={blocks}
+              tasks={tasks}
+              currentBlockId={currentBlock?.id}
+              isToday={isToday}
+              onBlockDone={(id) => setBlockStatus(id, "done")}
+              onBlockSkip={(id) => setBlockStatus(id, "skipped")}
+              {...taskHandlers}
+            />
+          )}
+        </div>
+
+        {mobileLayout ? (
+          <div className="day-hero-footer">
+            <button
+              type="button"
+              className="ghost-btn small day-stats-toggle"
+              aria-expanded={statsOpen}
+              onClick={() => setStatsOpen((open) => !open)}
+            >
+              요약 {stats.completion}% · 일정 {blocks.length} · 할일 {tasks.length}
+              <span className="accordion-chevron">{statsOpen ? " ▾" : " ▸"}</span>
+            </button>
+            {statsOpen ? (
+              <div className="day-glance-bar day-glance-bar-mobile">
+                <div className="glance-stat">
+                  <strong>{stats.completion}%</strong>
+                  <span>완료</span>
+                </div>
+                <div className="glance-stat">
+                  <strong>{blocks.length}</strong>
+                  <span>일정</span>
+                </div>
+                <div className="glance-stat">
+                  <strong>{tasks.length}</strong>
+                  <span>할일</span>
+                </div>
+                <div className="glance-stat">
+                  <strong>{currentTime}</strong>
+                  <span>현재</span>
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : (
-          <DayScheduleSection
-            blocks={blocks}
-            tasks={tasks}
-            currentBlockId={currentBlock?.id}
-            isToday={isToday}
-            onBlockDone={(id) => setBlockStatus(id, "done")}
-            onBlockSkip={(id) => setBlockStatus(id, "skipped")}
-            {...taskHandlers}
-          />
+          <div className="day-hero-footer">
+            <div className="day-glance-bar">
+              <div className="glance-stat">
+                <strong>{stats.completion}%</strong>
+                <span>완료</span>
+              </div>
+              <div className="glance-stat">
+                <strong>{blocks.length}</strong>
+                <span>일정</span>
+              </div>
+              <div className="glance-stat">
+                <strong>{tasks.length}</strong>
+                <span>할일</span>
+              </div>
+              <div className="glance-stat">
+                <strong>{currentTime}</strong>
+                <span>현재</span>
+              </div>
+            </div>
+          </div>
         )}
       </section>
 
+      {!mobileLayout ? (
+        <>
       <section className="panel plan-panel accordion-panel secondary-panel">
         <button
           type="button"
@@ -285,6 +329,8 @@ export function DayBoardView() {
           <p className="muted-hint">특정 시간에 메모 질문 알림을 받을 수 있습니다.</p>
         )}
       </section>
+        </>
+      ) : null}
     </div>
   );
 }

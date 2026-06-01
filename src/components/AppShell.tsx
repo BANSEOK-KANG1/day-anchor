@@ -17,6 +17,8 @@ import { MoreView } from "@/components/views/MoreView";
 import { QuickDock } from "@/components/QuickDock";
 import { QuickCaptureSheet } from "@/components/QuickCaptureSheet";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { PwaUpdateBanner } from "@/components/PwaUpdateBanner";
+import type { QuickCaptureTab } from "@/lib/types";
 
 const VALID_VIEWS: ViewName[] = ["day", "month", "more"];
 const VALID_MORE: MoreSubView[] = ["menu", "review", "insights", "schedule", "tasks", "notes"];
@@ -77,6 +79,7 @@ export function AppShell() {
     toast,
     signOut,
     supabaseReady,
+    openQuickCapture,
   } = useApp();
 
   useEffect(() => {
@@ -112,7 +115,22 @@ export function AppShell() {
     urlSynced.current = true;
     prevNav.current = { view, more, date };
     router.replace(buildAppUrl(view, date, more), { scroll: false });
-  }, [loading, user, searchParams, setActiveDate, setActiveView, setMoreSubView, router, activeDate]);
+
+    const capture = searchParams.get("capture");
+    if (capture === "schedule" || capture === "task" || capture === "note") {
+      openQuickCapture(capture as QuickCaptureTab);
+    }
+  }, [
+    loading,
+    user,
+    searchParams,
+    setActiveDate,
+    setActiveView,
+    setMoreSubView,
+    router,
+    activeDate,
+    openQuickCapture,
+  ]);
 
   useEffect(() => {
     if (!urlSynced.current || loading || !user || applyingHistory.current) return;
@@ -278,6 +296,7 @@ export function AppShell() {
 
       <QuickDock />
       <QuickCaptureSheet />
+      <PwaUpdateBanner />
 
       <div className={`toast ${toast.visible ? "show" : ""}`} role="status" aria-live="polite">
         {toast.message}
