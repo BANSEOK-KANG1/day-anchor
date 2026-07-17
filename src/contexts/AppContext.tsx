@@ -176,7 +176,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const currentBlock = useMemo(
     () => getCurrentBlock(blocks, activeDate),
-    [blocks, activeDate],
+    [blocks, activeDate, currentTime],
   );
 
   const setActiveView = useCallback((view: ViewName, options?: { keepMoreSub?: boolean }) => {
